@@ -1,0 +1,17 @@
+{
+  "apiBaseUrl": "http://localhost:3000/api",
+  "appName": "ALFA Cash Ledger",
+  "version": "1.0.0",
+  "defaultTimezone": "Asia/Karachi",
+  "defaultCurrency": "PKR",
+  "defaultLowBalanceThreshold": 50000,
+  "defaultSalaryDueDay": 5,
+  "enableOCR": true,
+  "enableOfflineMode": true,
+  "enableBackups": true,
+  "salaryReminderDays": [7, 3, 1],
+  "lowBalanceAlertEnabled": true,
+  "backupIntervalHours": 1,
+  "fullBackupIntervalHours": 24,
+  "backupRetentionDays": 14
+}
