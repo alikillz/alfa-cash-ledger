@@ -110,7 +110,7 @@ export class BusinessSwitcherComponent {
     if (success) {
       this.currentBusiness = this.businessService.getCurrentBusiness();
       // Emit event or refresh dashboard data here
-      console.log('Business changed to:', this.currentBusiness.name);
+      // console.log('Business changed to:', this.currentBusiness.name);
     }
   }
 }

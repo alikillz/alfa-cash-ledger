@@ -5,10 +5,19 @@ import { AppConfigService } from '../../core/services/app-config.service';
 import { AuthService } from '../../core/services/auth.service';
 import { BusinessSwitcherComponent } from './components/business-switcher/business-switcher.component';
 import { KpiCardsComponent } from './components/kpi-cards/kpi-cards.component';
+import { QuickActionsComponent } from './components/quick-actions/quick-actions.component';
+import { TransactionListComponent } from './components/transaction-list/transaction-list.component';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BusinessSwitcherComponent, KpiCardsComponent],
+  imports: [
+    CommonModule,
+    BusinessSwitcherComponent,
+    KpiCardsComponent,
+    QuickActionsComponent,
+    TransactionListComponent,
+  ],
   template: `
     <div class="dashboard-container">
       <header class="dashboard-header">
@@ -24,15 +33,10 @@ import { KpiCardsComponent } from './components/kpi-cards/kpi-cards.component';
       <app-kpi-cards></app-kpi-cards>
       <!-- Add KPI Cards -->
 
-      <div class="quick-actions">
-        <h2>Quick Actions</h2>
-        <div class="action-buttons">
-          <button class="action-btn">Add Expense</button>
-          <button class="action-btn">Add Top-Up</button>
-          <button class="action-btn">View Reports</button>
-          <button class="action-btn">Manage Employees</button>
-        </div>
-      </div>
+      <app-quick-actions></app-quick-actions>
+      <!-- Add this -->
+      <!-- Transaction List -->
+      <app-transaction-list></app-transaction-list>
     </div>
   `,
   styles: [
@@ -126,7 +130,7 @@ export class Dashboard implements OnInit {
   }
 
   ngOnInit() {
-    console.log('Dashboard loaded for user:', this.currentUser);
+    // console.log('Dashboard loaded for user:', this.currentUser);
   }
 
   logout() {
