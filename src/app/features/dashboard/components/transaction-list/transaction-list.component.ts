@@ -84,9 +84,17 @@ import { TitleCasePipe } from '../../../../shared/pipes/titlecase-pipe';
               }
             </div>
             <div class="col-amount">
-              <span [class.negative]="transaction.type === 'EXPENSE'">
-                {{ transaction.type === 'EXPENSE' ? '-' : '+' }} PKR
-                {{ transaction.amount | number }}
+              <span
+                [class.negative]="
+                  transaction.type === 'EXPENSE' || transaction.type === 'SALARY_PAYMENT'
+                "
+              >
+                {{
+                  transaction.type === 'EXPENSE' || transaction.type === 'SALARY_PAYMENT'
+                    ? '-'
+                    : '+'
+                }}
+                PKR {{ transaction.amount | number }}
               </span>
             </div>
           </div>
@@ -357,7 +365,11 @@ export class TransactionListComponent implements OnInit {
 
   getTotalAmount(): number {
     return this.filteredTransactions().reduce((total, t) => {
-      return t.type === 'EXPENSE' ? total - t.amount : total + t.amount;
+      if (t.type === 'EXPENSE' || t.type === 'SALARY_PAYMENT') {
+        return total - t.amount; // Money OUT
+      } else {
+        return total + t.amount; // Money IN (only TOP_UP)
+      }
     }, 0);
   }
 }

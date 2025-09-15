@@ -3,6 +3,7 @@ import { Component, EventEmitter, Output, inject, input, signal } from '@angular
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BusinessService } from '../../../../core/services/business.service';
 import { EmployeeService } from '../../../../core/services/employee.service';
+import { PayslipService } from '../../../../core/services/payslip.service';
 import { TransactionService } from '../../../../core/services/transaction.service';
 
 @Component({
@@ -476,6 +477,7 @@ export class SalaryPaymentModalComponent {
   private businessService = inject(BusinessService);
   private employeeService = inject(EmployeeService);
   private transactionService = inject(TransactionService);
+  private payslipService = inject(PayslipService);
 
   @Output() closed = new EventEmitter<void>();
   @Output() paymentProcessed = new EventEmitter<void>();
@@ -572,6 +574,18 @@ export class SalaryPaymentModalComponent {
       // TODO: Generate payslip if selected
       if (formData.generatePayslip) {
         console.log('Generating payslip for:', employee?.name);
+        const payslipData = {
+          employee: employee,
+          payment: salaryPayment,
+          business: currentBusiness,
+          period: formData.period!,
+          paymentDate: formData.date!,
+          amount: formData.amount!,
+          isPartial: formData.partialPayment!,
+          notes: formData.notes ?? undefined,
+        };
+
+        this.payslipService.generatePayslip(payslipData);
       }
 
       this.isSubmitting = false;

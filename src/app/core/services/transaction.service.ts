@@ -29,8 +29,8 @@ export class TransactionService {
       .filter(
         (t) =>
           t.businessId === currentBusiness.id &&
-          t.type === 'EXPENSE' &&
-          new Date(t.date).toDateString() === today
+          (t.type === 'EXPENSE' || t.type === 'SALARY_PAYMENT') &&
+          new Date(t.date).toDateString() === today // ← Check date for BOTH types
       )
       .reduce((sum, t) => sum + t.amount, 0);
   }
@@ -45,8 +45,8 @@ export class TransactionService {
       .filter(
         (t) =>
           t.businessId === currentBusiness.id &&
-          t.type === 'EXPENSE' &&
-          new Date(t.date) >= firstDayOfMonth
+          (t.type === 'EXPENSE' || t.type === 'SALARY_PAYMENT') &&
+          new Date(t.date) >= firstDayOfMonth // ← Check date for BOTH types
       )
       .reduce((sum, t) => sum + t.amount, 0);
   }
@@ -82,5 +82,13 @@ export class TransactionService {
     return this.transactions.filter(
       (t) => t.type === 'SALARY_PAYMENT' && t.employeeId === employeeId
     );
+  }
+
+  getAllTransactions(): Transaction[] {
+    return this.transactions; // Return all transactions across all businesses
+  }
+
+  getTransactionsByBusiness(businessId: string): Transaction[] {
+    return this.transactions.filter((t) => t.businessId === businessId);
   }
 }

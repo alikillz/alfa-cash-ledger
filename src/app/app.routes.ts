@@ -23,7 +23,10 @@ export const routes: Routes = [
   },
   {
     path: 'reports',
-    loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+    loadComponent: () =>
+      import('./features/reports/components/report-dashboard/report-dashboard.component').then(
+        (m) => m.ReportDashboardComponent
+      ),
     canActivate: [AuthGuard],
   },
   {
