@@ -20,14 +20,6 @@ import { TransactionListComponent } from './components/transaction-list/transact
   ],
   template: `
     <div class="dashboard-container">
-      <header class="dashboard-header">
-        <h1>ALFA Dashboard</h1>
-        <div class="user-info">
-          <span>Welcome, {{ currentUser?.name }} ({{ currentUser?.role }})</span>
-          <button (click)="logout()" class="logout-btn">Logout</button>
-        </div>
-      </header>
-
       <app-business-switcher></app-business-switcher>
 
       <app-kpi-cards></app-kpi-cards>

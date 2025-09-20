@@ -34,9 +34,11 @@ export class ReportService {
   // R1: Daily Spend by Business
   getDailySpendReport(filters: ReportFilters): ReportData {
     const transactions = this.getFilteredTransactions(filters);
-
-    const dailyData = this.groupByDate(transactions);
-    const total = transactions.reduce((sum, t) => sum + (t.type === 'EXPENSE' ? t.amount : 0), 0);
+    console.log(transactions);
+    // ONLY include expenses for daily spend report
+    const expenseTransactions = transactions.filter((t) => t.type === 'EXPENSE');
+    const dailyData = this.groupByDate(expenseTransactions);
+    const total = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
 
     return {
       title: 'Daily Spend Report',
@@ -45,7 +47,7 @@ export class ReportService {
       summary: {
         total,
         average: total / (dailyData.length || 1),
-        count: transactions.length,
+        count: expenseTransactions.length,
       },
     };
   }
@@ -72,9 +74,12 @@ export class ReportService {
     const currentBusiness = this.businessService.getCurrentBusiness();
     const allTransactions = this.transactionService.getAllTransactions();
 
-    // 1. CORRECT Opening Balance: Balance at START of report period
-    const prePeriodTransactions = allTransactions.filter(
-      (t) => t.businessId === currentBusiness.id && new Date(t.date) < filters.startDate
+    // 1. Get transactions for THIS BUSINESS only
+    const businessTransactions = allTransactions.filter((t) => t.businessId === currentBusiness.id);
+
+    // 2. CORRECT Opening Balance: Balance at START of report period
+    const prePeriodTransactions = businessTransactions.filter(
+      (t) => new Date(t.date) < filters.startDate
     );
 
     const openingBalance =
@@ -86,15 +91,12 @@ export class ReportService {
         .filter((t) => t.type === 'EXPENSE' || t.type === 'SALARY_PAYMENT')
         .reduce((sum, t) => sum + t.amount, 0);
 
-    // 2. CORRECT Period Transactions (within date range)
-    const periodTransactions = allTransactions.filter(
-      (t) =>
-        t.businessId === currentBusiness.id &&
-        new Date(t.date) >= filters.startDate &&
-        new Date(t.date) <= filters.endDate
+    // 3. CORRECT Period Transactions (within date range)
+    const periodTransactions = businessTransactions.filter(
+      (t) => new Date(t.date) >= filters.startDate && new Date(t.date) <= filters.endDate
     );
 
-    // 3. CORRECT Calculations (salaries are expenses too!)
+    // 4. CORRECT Calculations
     const topUps = periodTransactions
       .filter((t) => t.type === 'TOP_UP')
       .reduce((sum, t) => sum + t.amount, 0);
@@ -107,12 +109,11 @@ export class ReportService {
       .filter((t) => t.type === 'SALARY_PAYMENT')
       .reduce((sum, t) => sum + t.amount, 0);
 
-    // 4. CORRECT Closing Balance
     const totalOutflows = expenses + salaries;
     const closingBalance = openingBalance + topUps - totalOutflows;
 
     return {
-      title: 'Business Summary',
+      title: `Business Summary - ${currentBusiness.name}`,
       type: 'summary',
       data: [
         {
@@ -120,20 +121,15 @@ export class ReportService {
           topUps,
           expenses,
           salaries,
-          totalExpenditure: totalOutflows, // Added for clarity
+          totalExpenditure: totalOutflows,
           closingBalance,
           transactionCount: periodTransactions.length,
           period: {
-            start: filters.startDate,
-            end: filters.endDate,
+            start: filters.startDate.toISOString().split('T')[0],
+            end: filters.endDate.toISOString().split('T')[0],
           },
         },
       ],
-      summary: {
-        total: totalOutflows,
-        average: totalOutflows / (periodTransactions.length || 1),
-        count: periodTransactions.length,
-      },
     };
   }
 

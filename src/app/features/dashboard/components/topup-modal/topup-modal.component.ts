@@ -3,17 +3,27 @@ import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TopUp } from '../../../../core/models/transaction.model';
 import { BusinessService } from '../../../../core/services/business.service';
+import { EmployeeService } from '../../../../core/services/employee.service';
+import { PaymentMethodService } from '../../../../core/services/payment-method.service';
 import { TransactionService } from '../../../../core/services/transaction.service';
+import { TransferReasonService } from '../../../../core/services/transfer-reason.service';
+import { AddPaymentMethodModalComponent } from '../../../transactions/components/add-payment-method-modal/add-payment-method-modal.component';
+import { AddTransferReasonModalComponent } from '../../../transactions/components/add-transfer-reason-modal/add-transfer-reason-modal.component';
 
 @Component({
   selector: 'app-topup-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    AddPaymentMethodModalComponent,
+    AddTransferReasonModalComponent,
+  ],
   template: `
     <div class="modal-overlay" (click)="onClose()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2>Add Cash Top-Up</h2>
+          <h2>Top-Up</h2>
           <button class="close-btn" (click)="onClose()">×</button>
         </div>
 
@@ -49,39 +59,69 @@ import { TransactionService } from '../../../../core/services/transaction.servic
             }
           </div>
 
-          <!-- Handed To -->
+          <!-- Employee Dropdown -->
           <div class="form-group">
-            <label for="handedTo">Handed To (Manager) *</label>
-            <input
-              id="handedTo"
-              type="text"
-              formControlName="handedTo"
-              placeholder="Manager's name"
-              [class.error]="
-                topupForm.get('handedTo')?.invalid && topupForm.get('handedTo')?.touched
-              "
-            />
-            @if (topupForm.get('handedTo')?.invalid && topupForm.get('handedTo')?.touched) {
-            <div class="error-message">Manager name is required</div>
-            }
+            <label for="handedTo">Employee *</label>
+            <select id="handedTo" formControlName="handedTo">
+              <option value="">Select Employee</option>
+              <option *ngFor="let employee of employees" [value]="employee.name">
+                {{ employee.name }} - {{ employee.designation }}
+              </option>
+            </select>
           </div>
 
-          <!-- Payment Method -->
+          <!-- method -->
           <div class="form-group">
-            <label for="method">Payment Method *</label>
+            <div class="form-header">
+              <label for="method">Payment Method *</label>
+              <button type="button" class="add-btn" (click)="showPaymentMethodModal = true">
+                + Add New
+              </button>
+            </div>
             <select
               id="method"
               formControlName="method"
               [class.error]="topupForm.get('method')?.invalid && topupForm.get('method')?.touched"
             >
-              <option value="">Select method</option>
-              <option value="cash">Cash</option>
-              <option value="bank">Bank Transfer</option>
-              <option value="other">Other</option>
+              <option value="">Select Payment Method</option>
+              @for (method of paymentMethods; track method) {
+              <option [value]="method">{{ method }}</option>
+              }
             </select>
             @if (topupForm.get('method')?.invalid && topupForm.get('method')?.touched) {
-            <div class="error-message">Method is required</div>
+            <div class="error-message">Payment Method is required</div>
             }
+          </div>
+
+          <!-- Transfer Reason Dropdown with + Button -->
+          <div class="form-group">
+            <div class="form-header">
+              <label for="transferReason">Transfer Reason *</label>
+              <button type="button" class="add-btn" (click)="showTransferReasonModal = true">
+                + Add New
+              </button>
+            </div>
+            <select
+              id="transferReason"
+              formControlName="transferReason"
+              [class.error]="
+                topupForm.get('transferReason')?.invalid && topupForm.get('transferReason')?.touched
+              "
+            >
+              <option value="">Select Transfer Reason</option>
+              @for (reason of transferReasons; track reason) {
+              <option [value]="reason">{{ reason }}</option>
+              }
+            </select>
+            @if (topupForm.get('method')?.invalid && topupForm.get('method')?.touched) {
+            <div class="error-message">Payment Method is required</div>
+            }
+          </div>
+
+          <!-- Proof Upload -->
+          <div class="form-group">
+            <label for="proofImage">Proof of Transaction (Optional)</label>
+            <input type="file" id="proofImage" (change)="onFileSelected($event)" accept="image/*" />
           </div>
 
           <!-- Notes -->
@@ -113,6 +153,18 @@ import { TransactionService } from '../../../../core/services/transaction.servic
         </form>
       </div>
     </div>
+    <!-- Modals for adding new items -->
+    <app-add-payment-method-modal
+      *ngIf="showPaymentMethodModal"
+      (closed)="onPaymentMethodModalClosed()"
+    >
+    </app-add-payment-method-modal>
+
+    <app-add-transfer-reason-modal
+      *ngIf="showTransferReasonModal"
+      (closed)="onTransferReasonModalClosed()"
+    >
+    </app-add-transfer-reason-modal>
   `,
   styles: [
     `
@@ -134,7 +186,7 @@ import { TransactionService } from '../../../../core/services/transaction.servic
         background: white;
         border-radius: 12px;
         width: 100%;
-        max-width: 500px;
+        max-width: 600px;
         max-height: 90vh;
         overflow-y: auto;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
@@ -175,7 +227,10 @@ import { TransactionService } from '../../../../core/services/transaction.servic
       }
 
       .topup-form {
-        padding: 1.5rem;
+        padding-bottom: 1.5rem;
+        padding-top: 1.5rem;
+        padding-left: 3rem;
+        padding-right: 3rem;
       }
 
       .form-group {
@@ -201,13 +256,37 @@ import { TransactionService } from '../../../../core/services/transaction.servic
 
         &:focus {
           outline: none;
-          border-color: #38a169;
-          box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
+          border-color: #4299e1;
+          box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
         }
 
         &.error {
           border-color: #e53e3e;
         }
+      }
+
+      .file-input {
+        padding: 0.5rem;
+      }
+
+      .file-info {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: #f7fafc;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .remove-file {
+        background: #e53e3e;
+        color: white;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
       }
 
       .error-message {
@@ -240,11 +319,11 @@ import { TransactionService } from '../../../../core/services/transaction.servic
       }
 
       .btn-primary {
-        background: #38a169;
+        background: #4299e1;
         color: white;
 
         &:hover:not(:disabled) {
-          background: #2f855a;
+          background: #3182ce;
         }
       }
 
@@ -271,6 +350,54 @@ import { TransactionService } from '../../../../core/services/transaction.servic
         .btn {
           width: 100%;
         }
+
+        .expense-form {
+          padding: 1.5rem;
+        }
+      }
+
+      /* Add these new styles */
+      .form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .add-btn {
+        background: #38a169;
+        color: white;
+        border: none;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+
+        &:hover {
+          background: #2f855a;
+        }
+      }
+
+      /* Ensure selects look consistent with inputs */
+      select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 1rem;
+        background: white;
+        transition: border-color 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: #4299e1;
+          box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        &.error {
+          border-color: #e53e3e;
+        }
       }
     `,
   ],
@@ -279,7 +406,14 @@ export class TopupModalComponent {
   private fb = inject(FormBuilder);
   private businessService = inject(BusinessService);
   private transactionService = inject(TransactionService);
-
+  private paymentMethodService = inject(PaymentMethodService);
+  private transferReasonService = inject(TransferReasonService);
+  private employeeService = inject(EmployeeService);
+  paymentMethods: string[] = [];
+  transferReasons: string[] = [];
+  employees: any[] = [];
+  showPaymentMethodModal = false;
+  showTransferReasonModal = false;
   @Output() closed = new EventEmitter<void>();
   @Output() topupAdded = new EventEmitter<void>();
 
@@ -288,13 +422,43 @@ export class TopupModalComponent {
     date: [new Date(), Validators.required],
     handedTo: ['', Validators.required],
     method: ['', Validators.required],
+    transferReason: ['', Validators.required],
     notes: [''],
   });
+
+  ngOnInit() {
+    this.loadDropdownData();
+  }
+
+  loadDropdownData() {
+    this.paymentMethods = this.paymentMethodService.getPaymentMethods();
+    this.transferReasons = this.transferReasonService.getTransferReasons();
+    this.employees = this.employeeService.getEmployees();
+  }
 
   isSubmitting = false;
 
   onClose(): void {
     this.closed.emit();
+  }
+
+  onPaymentMethodModalClosed() {
+    this.showPaymentMethodModal = false;
+    this.paymentMethods = this.paymentMethodService.getPaymentMethods();
+  }
+
+  onTransferReasonModalClosed() {
+    this.showTransferReasonModal = false;
+    this.transferReasons = this.transferReasonService.getTransferReasons();
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.topupForm.patchValue({
+        //proofImage: file,
+      });
+    }
   }
 
   onSubmit(): void {
@@ -309,8 +473,9 @@ export class TopupModalComponent {
         amount: formData.amount!,
         date: formData.date!,
         handedTo: formData.handedTo!,
-        method: formData.method! as 'cash' | 'bank' | 'other',
+        method: formData.method! as 'Jazz Cash' | 'Easy Paisa' | 'Bank',
         notes: formData.notes ?? undefined,
+        transferReason: formData.transferReason ?? undefined,
       };
 
       // Add to transaction service

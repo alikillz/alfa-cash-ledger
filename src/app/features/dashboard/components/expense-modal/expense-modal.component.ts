@@ -3,12 +3,24 @@ import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Expense } from '../../../../core/models/transaction.model';
 import { BusinessService } from '../../../../core/services/business.service';
+import { CategoryService } from '../../../../core/services/category.service';
+import { ProductService } from '../../../../core/services/product.service';
 import { TransactionService } from '../../../../core/services/transaction.service';
+import { VendorService } from '../../../../core/services/vendor.service';
+import { AddCategoryModalComponent } from '../../../expenses/components/add-category-modal/add-category-modal.component';
+import { AddProductModalComponent } from '../../../expenses/components/add-product-modal/add-product-modal.component';
+import { AddVendorModalComponent } from '../../../expenses/components/add-vendor-modal/add-vendor-modal.component';
 
 @Component({
   selector: 'app-expense-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    AddCategoryModalComponent,
+    AddVendorModalComponent,
+    AddProductModalComponent,
+  ],
   template: `
     <div class="modal-overlay" (click)="onClose()">
       <div class="modal-content" (click)="$event.stopPropagation()">
@@ -51,9 +63,14 @@ import { TransactionService } from '../../../../core/services/transaction.servic
             }
           </div>
 
-          <!-- Category -->
+          <!-- Category Dropdown with + Button -->
           <div class="form-group">
-            <label for="category">Category *</label>
+            <div class="form-header">
+              <label for="category">Category *</label>
+              <button type="button" class="add-btn" (click)="showCategoryModal = true">
+                + Add New
+              </button>
+            </div>
             <select
               id="category"
               formControlName="category"
@@ -62,49 +79,69 @@ import { TransactionService } from '../../../../core/services/transaction.servic
               "
             >
               <option value="">Select category</option>
-              <option value="Fuel">Fuel</option>
-              <option value="Utilities">Utilities</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Supplies">Supplies</option>
-              <option value="Rent">Rent</option>
-              <option value="Other">Other</option>
+              @for (category of categories(); track category) {
+              <option [value]="category">{{ category }}</option>
+              }
             </select>
             @if (expenseForm.get('category')?.invalid && expenseForm.get('category')?.touched) {
             <div class="error-message">Category is required</div>
             }
           </div>
 
-          <!-- Vendor -->
+          <!-- Vendor Dropdown with + Button -->
           <div class="form-group">
-            <label for="vendorName">Vendor *</label>
-            <input
+            <div class="form-header">
+              <label for="vendorName">Vendor *</label>
+              <button type="button" class="add-btn" (click)="showVendorModal = true">
+                + Add New
+              </button>
+            </div>
+            <select
               id="vendorName"
-              type="text"
               formControlName="vendorName"
-              placeholder="Vendor name"
               [class.error]="
                 expenseForm.get('vendorName')?.invalid && expenseForm.get('vendorName')?.touched
               "
-            />
+            >
+              <option value="">Select vendor</option>
+              @for (vendor of vendors(); track vendor) {
+              <option [value]="vendor">{{ vendor }}</option>
+              }
+            </select>
             @if (expenseForm.get('vendorName')?.invalid && expenseForm.get('vendorName')?.touched) {
-            <div class="error-message">Vendor name is required</div>
+            <div class="error-message">Vendor is required</div>
             }
           </div>
 
-          <!-- Product -->
+          <!-- Product Dropdown with + Button -->
           <div class="form-group">
-            <label for="productName">Product/Description</label>
-            <input
+            <div class="form-header">
+              <label for="productName">Product *</label>
+              <button type="button" class="add-btn" (click)="showProductModal = true">
+                + Add New
+              </button>
+            </div>
+            <select
               id="productName"
-              type="text"
               formControlName="productName"
-              placeholder="What was purchased?"
-            />
+              [class.error]="
+                expenseForm.get('productName')?.invalid && expenseForm.get('productName')?.touched
+              "
+            >
+              <option value="">Select product</option>
+              @for (product of products(); track product) {
+              <option [value]="product">{{ product }}</option>
+              }
+            </select>
+            @if (expenseForm.get('productName')?.invalid && expenseForm.get('productName')?.touched)
+            {
+            <div class="error-message">Product is required</div>
+            }
           </div>
 
           <!-- Quantity -->
           <div class="form-group">
-            <label for="quantity">Quantity</label>
+            <label for="quantity">Quantity *</label>
             <input
               id="quantity"
               type="number"
@@ -112,29 +149,45 @@ import { TransactionService } from '../../../../core/services/transaction.servic
               placeholder="Qty"
               step="1"
               min="1"
+              [class.error]="
+                expenseForm.get('quantity')?.invalid && expenseForm.get('quantity')?.touched
+              "
             />
+            @if (expenseForm.get('quantity')?.invalid && expenseForm.get('quantity')?.touched) {
+            <div class="error-message">Quantity is required</div>
+            }
           </div>
 
           <!-- Location -->
           <div class="form-group">
-            <label for="location">Location</label>
+            <label for="location">Location *</label>
             <input
               id="location"
               type="text"
               formControlName="location"
               placeholder="Where was this expense made?"
+              [class.error]="
+                expenseForm.get('location')?.invalid && expenseForm.get('location')?.touched
+              "
             />
+            @if (expenseForm.get('location')?.invalid && expenseForm.get('location')?.touched) {
+            <div class="error-message">Location is required</div>
+            }
           </div>
 
           <!-- Notes -->
           <div class="form-group">
-            <label for="notes">Notes</label>
+            <label for="notes">Expense description</label>
             <textarea
               id="notes"
               formControlName="notes"
-              placeholder="Additional notes..."
+              placeholder="expense description..."
               rows="3"
+              [class.error]="expenseForm.get('notes')?.invalid && expenseForm.get('notes')?.touched"
             ></textarea>
+            @if (expenseForm.get('notes')?.invalid && expenseForm.get('notes')?.touched) {
+            <div class="error-message">Expense description is required</div>
+            }
           </div>
 
           <!-- Receipt Upload -->
@@ -173,6 +226,14 @@ import { TransactionService } from '../../../../core/services/transaction.servic
         </form>
       </div>
     </div>
+    <!-- Modals -->
+    @if (showCategoryModal) {
+    <app-add-category-modal (closed)="showCategoryModal = false"></app-add-category-modal>
+    } @if (showVendorModal) {
+    <app-add-vendor-modal (closed)="showVendorModal = false"></app-add-vendor-modal>
+    } @if (showProductModal) {
+    <app-add-product-modal (closed)="showProductModal = false"></app-add-product-modal>
+    }
   `,
   styles: [
     `
@@ -235,7 +296,10 @@ import { TransactionService } from '../../../../core/services/transaction.servic
       }
 
       .expense-form {
-        padding: 1.5rem;
+        padding-bottom: 1.5rem;
+        padding-top: 1.5rem;
+        padding-left: 3rem;
+        padding-right: 3rem;
       }
 
       .form-group {
@@ -355,6 +419,54 @@ import { TransactionService } from '../../../../core/services/transaction.servic
         .btn {
           width: 100%;
         }
+
+        .expense-form {
+          padding: 1.5rem;
+        }
+      }
+
+      /* Add these new styles */
+      .form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .add-btn {
+        background: #38a169;
+        color: white;
+        border: none;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+
+        &:hover {
+          background: #2f855a;
+        }
+      }
+
+      /* Ensure selects look consistent with inputs */
+      select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 1rem;
+        background: white;
+        transition: border-color 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: #4299e1;
+          box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        &.error {
+          border-color: #e53e3e;
+        }
       }
     `,
   ],
@@ -363,24 +475,40 @@ export class ExpenseModalComponent {
   private fb = inject(FormBuilder);
   private businessService = inject(BusinessService);
   private transactionService = inject(TransactionService);
+  private categoryService = inject(CategoryService);
+  private vendorService = inject(VendorService);
+  private productService = inject(ProductService);
+  selectedFile: File | null = null;
+  isSubmitting = false;
 
   @Output() closed = new EventEmitter<void>();
   @Output() expenseAdded = new EventEmitter<void>();
+
+  categories = this.categoryService.getCategories;
+  vendors = this.vendorService.getVendors;
+  products = this.productService.getProducts;
 
   expenseForm = this.fb.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
     date: [new Date(), Validators.required],
     category: ['', Validators.required],
     vendorName: ['', Validators.required],
-    productName: [''],
-    quantity: [1],
+    productName: ['', Validators.required],
+    quantity: [0, Validators.required],
     taxAmount: [0],
-    location: [''],
-    notes: [''],
+    location: ['', Validators.required],
+    notes: ['', Validators.required],
   });
+  showCategoryModal = false;
+  showVendorModal = false;
+  showProductModal = false;
 
-  selectedFile: File | null = null;
-  isSubmitting = false;
+  ngOnInit() {
+    // Subscribe to changes to refresh dropdowns
+    this.categories = this.categoryService.categories$;
+    this.vendors = this.vendorService.vendors$;
+    this.products = this.productService.products$;
+  }
 
   onClose(): void {
     this.closed.emit();

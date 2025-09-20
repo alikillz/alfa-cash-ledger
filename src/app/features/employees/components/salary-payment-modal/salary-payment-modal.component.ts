@@ -569,6 +569,7 @@ export class SalaryPaymentModalComponent {
         type: 'SALARY_PAYMENT',
         vendorName: `Salary: ${employee?.name}`,
         category: 'Salary Payment',
+        transferReason: 'Salary Payment',
       });
 
       // TODO: Generate payslip if selected

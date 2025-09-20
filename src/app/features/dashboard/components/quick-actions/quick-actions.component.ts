@@ -30,7 +30,7 @@ import { TopupModalComponent } from '../topup-modal/topup-modal.component';
           [class.disabled]="!canPerformAction('topup')"
         >
           <span class="icon">💰</span>
-          <span class="label">Add Top-Up</span>
+          <span class="label">Top-Up</span>
         </button>
 
         <!-- Pay Salary - Both Roles -->

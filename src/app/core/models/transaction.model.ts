@@ -40,7 +40,7 @@ export interface Transaction {
   // Add Top-Up specific properties (optional)
   handedTo?: string; // For TOP_UP transactions
   method?: string; // For TOP_UP transactions
-
+  transferReason?: string;
   // Add Salary specific properties (optional - for future)
   employeeId?: string; // For SALARY_PAYMENT transactions
   period?: string; // For SALARY_PAYMENT transactions
@@ -52,7 +52,9 @@ export interface TopUp {
   amount: number;
   date: Date;
   handedTo: string; // Manager name
-  method: 'cash' | 'bank' | 'other';
+  method: 'Jazz Cash' | 'Easy Paisa' | 'Bank';
+  transferReason?: string;
+  proofImage?: File;
   notes?: string;
 }
 
@@ -60,6 +62,8 @@ export interface TopUpFormData {
   amount: number;
   date: Date;
   handedTo: string;
-  method: 'cash' | 'bank' | 'other';
+  method: 'Jazz Cash' | 'Easy Paisa' | 'Bank';
+  transferReason?: string;
+  proofImage?: File;
   notes?: string;
 }
