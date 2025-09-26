@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../services/Supabase/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -157,7 +157,7 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    this.authService.logout();
+    this.authService.signOut();
     this.router.navigate(['/login']);
   }
 }

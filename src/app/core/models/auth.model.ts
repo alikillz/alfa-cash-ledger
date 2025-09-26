@@ -5,7 +5,7 @@ export interface User {
   email: string;
   phone?: string;
   status: 'active' | 'inactive';
-  createdAt: Date;
+  created_at: string;
   currentBusinessId?: string;
 }
 
@@ -18,7 +18,7 @@ export interface LoginCredentials {
 export interface AuthResponse {
   user: User;
   token: string;
-  expiresIn: number;
+  expiresIn?: number;
 }
 
 export interface AuthState {

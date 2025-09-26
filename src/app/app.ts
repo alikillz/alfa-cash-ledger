@@ -1,17 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { HeaderComponent } from './core/components/header/header.component';
 import { AppConfigService } from './core/services/app-config.service';
 import { AuthService } from './core/services/auth.service';
+import { LoadingComponent } from './shared/components/loading/loading.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, HeaderComponent], // ← HeaderComponent here
+  imports: [CommonModule, RouterOutlet, LoadingComponent], // ← HeaderComponent here
   template: `
     <!-- ← Change to inline template -->
-    <app-header></app-header>
+
+    <app-loading></app-loading>
     <main class="main-content">
       <router-outlet></router-outlet>
     </main>

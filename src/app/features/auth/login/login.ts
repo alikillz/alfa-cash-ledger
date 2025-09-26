@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { User } from '../../../core/models/auth.model';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/Supabase/auth.service';
+import { LoadingService } from '../../../core/services/loading.service';
 
 @Component({
   selector: 'app-login',
@@ -57,13 +57,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="error-message server-error">{{ errorMessage }}</div>
           }
 
-          <button type="submit" class="login-btn" [disabled]="loginForm.invalid || isLoading">
-            @if (isLoading) {
-            <span>Signing in...</span>
-            } @else {
-            <span>Sign In</span>
-            }
-          </button>
+          <button type="submit" class="login-btn" [disabled]="loginForm.invalid">Sign In</button>
         </form>
 
         <div class="demo-credentials">
@@ -193,25 +187,46 @@ export class Login {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private loadingService = inject(LoadingService);
+  loading = false;
 
   loginForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required],
+    email: this.fb.control<string>('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.email],
+    }),
+    password: this.fb.control<string>('', { nonNullable: true, validators: [Validators.required] }),
     rememberMe: [false],
   });
 
   isLoading = false;
   errorMessage = '';
 
-  onSubmit() {
+  async onSubmit() {
+    this.loadingService.show();
+    this.loading = true;
     if (this.loginForm.valid) {
       this.isLoading = true;
       this.errorMessage = '';
 
-      const credentials = this.loginForm.value;
+      const { email, password } = this.loginForm.getRawValue();
+
+      try {
+        await this.authService.signIn(email, password);
+        // Navigate to dashboard on success
+        console.log('login sucess');
+        this.router.navigate(['/dashboard']);
+      } catch (err: any) {
+        this.errorMessage = err?.message ?? 'Sign in failed';
+      } finally {
+        this.loading = false;
+        this.loadingService.hide();
+      }
+
+      //this.authService.signUp();
 
       // For demo purposes - simulate login
-      this.simulateLogin(credentials);
+      //this.simulateLogin(credentials);
 
       // For real app, you would use:
       // this.authService.login(credentials).subscribe({
@@ -222,61 +237,5 @@ export class Login {
       //   }
       // });
     }
-  }
-
-  // Demo login simulation
-  private simulateLogin(credentials: any) {
-    setTimeout(() => {
-      if (credentials.email === 'owner@alfa.com' && credentials.password === 'password') {
-        const user: User = {
-          id: '1',
-          role: 'owner',
-          name: 'Ali Khan',
-          email: 'owner@alfa.com',
-          status: 'active',
-          createdAt: new Date(),
-        };
-
-        localStorage.setItem('auth_token', 'demo-token-owner');
-        localStorage.setItem('auth_user', JSON.stringify(user));
-
-        this.authService['authState'].next({
-          user,
-          token: 'demo-token-owner',
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-
-        this.router.navigate(['/dashboard']);
-      } else if (credentials.email === 'manager@alfa.com' && credentials.password === 'password') {
-        const user: User = {
-          id: '2',
-          role: 'manager',
-          name: 'Ahmed Raza',
-          email: 'manager@alfa.com',
-          status: 'active',
-          createdAt: new Date(),
-          currentBusinessId: '1',
-        };
-
-        localStorage.setItem('auth_token', 'demo-token-manager');
-        localStorage.setItem('auth_user', JSON.stringify(user));
-
-        this.authService['authState'].next({
-          user,
-          token: 'demo-token-manager',
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-
-        this.router.navigate(['/dashboard']);
-      } else {
-        this.errorMessage = 'Invalid email or password';
-      }
-
-      this.isLoading = false;
-    }, 1000);
   }
 }

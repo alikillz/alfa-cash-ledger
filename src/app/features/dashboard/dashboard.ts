@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { HeaderComponent } from '../../core/components/header/header.component';
 import { AppConfigService } from '../../core/services/app-config.service';
 import { AuthService } from '../../core/services/auth.service';
 import { BusinessSwitcherComponent } from './components/business-switcher/business-switcher.component';
@@ -17,8 +18,10 @@ import { TransactionListComponent } from './components/transaction-list/transact
     KpiCardsComponent,
     QuickActionsComponent,
     TransactionListComponent,
+    HeaderComponent,
   ],
   template: `
+    <app-header></app-header>
     <div class="dashboard-container">
       <app-business-switcher></app-business-switcher>
 
