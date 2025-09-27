@@ -427,7 +427,7 @@ export class AddEmployeeModalComponent {
       const currentBusiness = this.businessService.getCurrentBusiness();
 
       const employee: Employee = {
-        businessId: currentBusiness.id,
+        businessId: currentBusiness?.id || '0',
         name: formData.name!,
         title: formData.title ?? undefined,
         phone: formData.phone ?? undefined,

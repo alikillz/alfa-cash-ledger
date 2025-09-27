@@ -75,7 +75,9 @@ export class ReportService {
     const allTransactions = this.transactionService.getAllTransactions();
 
     // 1. Get transactions for THIS BUSINESS only
-    const businessTransactions = allTransactions.filter((t) => t.businessId === currentBusiness.id);
+    const businessTransactions = allTransactions.filter(
+      (t) => t.businessId === currentBusiness?.id
+    );
 
     // 2. CORRECT Opening Balance: Balance at START of report period
     const prePeriodTransactions = businessTransactions.filter(
@@ -83,13 +85,14 @@ export class ReportService {
     );
 
     const openingBalance =
-      currentBusiness.initialBalance +
-      prePeriodTransactions
-        .filter((t) => t.type === 'TOP_UP')
-        .reduce((sum, t) => sum + t.amount, 0) -
-      prePeriodTransactions
-        .filter((t) => t.type === 'EXPENSE' || t.type === 'SALARY_PAYMENT')
-        .reduce((sum, t) => sum + t.amount, 0);
+      currentBusiness?.initial_balance ||
+      0 +
+        prePeriodTransactions
+          .filter((t) => t.type === 'TOP_UP')
+          .reduce((sum, t) => sum + t.amount, 0) -
+        prePeriodTransactions
+          .filter((t) => t.type === 'EXPENSE' || t.type === 'SALARY_PAYMENT')
+          .reduce((sum, t) => sum + t.amount, 0);
 
     // 3. CORRECT Period Transactions (within date range)
     const periodTransactions = businessTransactions.filter(
@@ -113,7 +116,7 @@ export class ReportService {
     const closingBalance = openingBalance + topUps - totalOutflows;
 
     return {
-      title: `Business Summary - ${currentBusiness.name}`,
+      title: `Business Summary - ${currentBusiness?.name}`,
       type: 'summary',
       data: [
         {

@@ -1,0 +1,55 @@
+.settings-container {
+  display: flex;
+  min-height: 80vh;
+  flex-wrap: wrap; /* allow stacking on small screens */
+}
+
+/* Sidebar (desktop) */
+.settings-sidebar {
+  flex: 0 0 220px;   /* fixed width */
+  background: #f8f9fa;
+  border-right: 1px solid #ddd;
+  padding: 1rem;
+}
+
+/* Sidebar list */
+.settings-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-sidebar li {
+  padding: 0.5rem 0;
+  cursor: pointer;
+}
+
+.settings-sidebar li.active {
+  font-weight: bold;
+  color: #007bff;
+}
+
+/* Content */
+.settings-content {
+  flex: 1;          /* take remaining space */
+  padding: 1.5rem;
+  overflow: auto;   /* scroll if content too big */
+}
+
+/* 📱 Mobile adjustments */
+@media (max-width: 768px) {
+  .settings-container {
+    flex-direction: column;
+  }
+
+  .settings-sidebar {
+    flex: 1 1 100%;   /* full width */
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .settings-content {
+    flex: 1 1 100%;   /* full width */
+    padding: 1rem;
+  }
+}

@@ -52,7 +52,7 @@ export class EmployeeService {
   // Get employees for current business
   getEmployees(): Employee[] {
     const currentBusiness = this.businessService.getCurrentBusiness();
-    return this.employees.filter((emp) => emp.businessId === currentBusiness.id && emp.active);
+    return this.employees.filter((emp) => emp.businessId === currentBusiness?.id && emp.active);
   }
 
   // Get employee by ID

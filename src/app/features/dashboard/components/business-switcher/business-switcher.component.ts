@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth.service';
-import { BusinessService } from '../../../../core/services/business.service';
+import { Business, BusinessService } from '../../../../core/services/business.service';
 
 @Component({
   selector: 'app-business-switcher',
@@ -13,19 +13,19 @@ import { BusinessService } from '../../../../core/services/business.service';
       <label for="business-select">Business: </label>
       <select
         id="business-select"
-        [ngModel]="currentBusiness.id"
+        [ngModel]="currentBusiness?.id"
         (ngModelChange)="onBusinessChange($event)"
         [disabled]="isManagerWithSingleBusiness"
         class="business-select"
       >
         <option *ngFor="let business of availableBusinesses" [value]="business.id">
-          {{ business.name }} (PKR {{ business.currentBalance | number }})
+          {{ business.name }} (PKR {{ business.current_balance | number }})
         </option>
       </select>
 
       <div class="business-info" *ngIf="currentBusiness">
         <span class="balance" [class.low-balance]="isLowBalance">
-          PKR {{ currentBusiness.currentBalance | number }}
+          PKR {{ currentBusiness.current_balance | number }}
         </span>
         <span class="timezone">({{ currentBusiness.timezone }})</span>
       </div>
@@ -89,12 +89,12 @@ import { BusinessService } from '../../../../core/services/business.service';
     `,
   ],
 })
-export class BusinessSwitcherComponent {
+export class BusinessSwitcherComponent implements OnInit {
   private businessService = inject(BusinessService);
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
 
-  availableBusinesses = this.businessService.getBusinesses();
-  currentBusiness = this.businessService.getCurrentBusiness();
+  availableBusinesses: Business[] = [];
+  currentBusiness: Business | null = null;
 
   get isManagerWithSingleBusiness(): boolean {
     const user = this.authService.currentUser;
@@ -102,15 +102,41 @@ export class BusinessSwitcherComponent {
   }
 
   get isLowBalance(): boolean {
-    return this.currentBusiness.currentBalance <= this.currentBusiness.lowBalanceThreshold;
+    return (
+      (this.currentBusiness?.current_balance ?? 0) <=
+      (this.currentBusiness?.low_balance_threshold ?? 0)
+    );
   }
 
+  async ngOnInit() {
+    // load businesses from DB
+    this.availableBusinesses = await this.businessService.fetchBusinesses();
+    this.currentBusiness = this.businessService.getCurrentBusiness();
+
+    // subscribe to changes in current business
+    this.businessService.currentBusiness$.subscribe((biz) => {
+      this.currentBusiness = biz;
+    });
+  }
   onBusinessChange(businessId: string): void {
     const success = this.businessService.setCurrentBusiness(businessId);
     if (success) {
       this.currentBusiness = this.businessService.getCurrentBusiness();
-      // Emit event or refresh dashboard data here
-      // console.log('Business changed to:', this.currentBusiness.name);
+      // 🔹 Optionally emit an event or reload data
+      // this.refreshDashboardData();
     }
+  }
+
+  async addBusiness() {
+    const name = prompt('Enter business name');
+    if (!name) return;
+
+    const newBiz = await this.businessService.addBusiness({
+      name,
+      initialBalance: 0,
+    });
+
+    this.availableBusinesses.push(newBiz);
+    this.currentBusiness = newBiz;
   }
 }

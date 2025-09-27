@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+import { map } from 'rxjs';
 import { AuthService } from '../../services/Supabase/auth.service';
 
 @Component({
@@ -26,12 +27,12 @@ import { AuthService } from '../../services/Supabase/auth.service';
             Employees
           </a>
           <a routerLink="/reports" routerLinkActive="active"> Reports </a>
-          <a routerLink="/transactions" routerLinkActive="active"> Transactions </a>
+          <a routerLink="/settings" routerLinkActive="active"> Settings </a>
         </nav>
 
         <!-- User Info -->
-        <div class="user-section">
-          <span class="user-info"> {{ currentUser?.name }} ({{ currentUser?.role }}) </span>
+        <div class="user-section" *ngIf="currentUser$ | async as user">
+          <span class="user-info"> {{ user.name }} ({{ user.role }}) </span>
           <button (click)="logout()" class="logout-btn">Logout</button>
         </div>
       </div>
@@ -150,7 +151,7 @@ export class HeaderComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  currentUser = this.authService.currentUser;
+  currentUser$ = this.authService.authState$.pipe(map((state) => state.user));
 
   canAccessEmployees(): boolean {
     return this.authService.hasRole('owner');

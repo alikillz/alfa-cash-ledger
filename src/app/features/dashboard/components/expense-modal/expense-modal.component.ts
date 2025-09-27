@@ -22,7 +22,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
     AddProductModalComponent,
   ],
   template: `
-    <div class="modal-overlay" (click)="onClose()">
+    <!--div class="modal-overlay" (click)="onClose()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>Add New Expense</h2>
@@ -30,7 +30,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
         </div>
 
         <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()" class="expense-form">
-          <!-- Amount -->
+         
           <div class="form-group">
             <label for="amount">Amount (PKR) *</label>
             <input
@@ -49,7 +49,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          <!-- Date -->
+         
           <div class="form-group">
             <label for="date">Date *</label>
             <input
@@ -63,7 +63,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          <!-- Category Dropdown with + Button -->
+          
           <div class="form-group">
             <div class="form-header">
               <label for="category">Category *</label>
@@ -88,7 +88,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          <!-- Vendor Dropdown with + Button -->
+          
           <div class="form-group">
             <div class="form-header">
               <label for="vendorName">Vendor *</label>
@@ -113,7 +113,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          <!-- Product Dropdown with + Button -->
+          
           <div class="form-group">
             <div class="form-header">
               <label for="productName">Product *</label>
@@ -139,7 +139,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          <!-- Quantity -->
+          
           <div class="form-group">
             <label for="quantity">Quantity *</label>
             <input
@@ -158,7 +158,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          <!-- Location -->
+        
           <div class="form-group">
             <label for="location">Location *</label>
             <input
@@ -175,7 +175,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          <!-- Notes -->
+        
           <div class="form-group">
             <label for="notes">Expense description</label>
             <textarea
@@ -190,7 +190,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          <!-- Receipt Upload -->
+          
           <div class="form-group">
             <label for="receipt">Receipt Image (Optional)</label>
             <input
@@ -208,7 +208,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          <!-- Form Actions -->
+          
           <div class="form-actions">
             <button type="button" (click)="onClose()" class="btn btn-secondary">Cancel</button>
             <button
@@ -225,15 +225,15 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
           </div>
         </form>
       </div>
-    </div>
-    <!-- Modals -->
+    </!--div>
+   
     @if (showCategoryModal) {
     <app-add-category-modal (closed)="showCategoryModal = false"></app-add-category-modal>
     } @if (showVendorModal) {
     <app-add-vendor-modal (closed)="showVendorModal = false"></app-add-vendor-modal>
     } @if (showProductModal) {
     <app-add-product-modal (closed)="showProductModal = false"></app-add-product-modal>
-    }
+} -->
   `,
   styles: [
     `
@@ -505,7 +505,7 @@ export class ExpenseModalComponent {
 
   ngOnInit() {
     // Subscribe to changes to refresh dropdowns
-    this.categories = this.categoryService.categories$;
+    //this.categories = this.categoryService.categories$;
     this.vendors = this.vendorService.vendors$;
     this.products = this.productService.products$;
   }
@@ -538,7 +538,7 @@ export class ExpenseModalComponent {
       const currentBusiness = this.businessService.getCurrentBusiness();
 
       const expense: Expense = {
-        businessId: currentBusiness.id,
+        businessId: currentBusiness?.id || '0',
         amount: formData.amount!,
         date: formData.date!,
         category: formData.category!,

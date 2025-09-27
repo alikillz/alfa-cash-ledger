@@ -554,7 +554,7 @@ export class SalaryPaymentModalComponent {
       const employee = this.selectedEmployee();
 
       const salaryPayment = {
-        businessId: currentBusiness.id,
+        businessId: currentBusiness?.id || '0',
         employeeId: formData.employeeId!,
         amount: formData.amount!,
         date: formData.date!,

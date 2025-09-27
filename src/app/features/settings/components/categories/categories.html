@@ -1,0 +1,94 @@
+<div class="business-form-container">
+  <div class="business-form-card">
+    <div class="form-header">
+      <h2>Categories</h2>
+    </div>
+    <form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()" class="business-form">
+      <div class="form-section">
+        <h3>Basic Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Category Name*</label>
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              placeholder="Enter category name"
+              [class.error]="form.get('name')?.invalid && form.get('name')?.touched"
+            />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+            <div class="error-message">Category name is required</div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              formControlName="description"
+              placeholder="Optional description"
+              rows="2"
+              [class.error]="form.get('description')?.invalid && form.get('description')?.touched"
+            ></textarea>
+            @if (form.get('description')?.invalid && form.get('description')?.touched) {
+            <div class="error-message">description is required</div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="status">Status *</label>
+            <select id="status" formControlName="status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+          {{ saving ? 'Saving...' : 'Save Category' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="list-toggle">
+  <button class="btn btn-outline" (click)="toggleList()">
+    {{ showList ? 'Hide List' : 'Show List' }}
+  </button>
+</div>
+
+<!-- List -->
+<div *ngIf="showList" class="categories-list">
+  <h3>Existing Categories</h3>
+
+  <div *ngIf="loading" class="loading">Loading categories...</div>
+  <div *ngIf="!loading && categories.length === 0" class="empty">No categories found</div>
+
+  <table *ngIf="!loading && categories.length > 0" class="categories-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Status</th>
+        <th style="width: 150px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let cat of categories">
+        <td>{{ cat.name }}</td>
+        <td>{{ cat.description || '-' }}</td>
+        <td>
+          <span [class.inactive]="cat.status === 'inactive'">{{ cat.status }}</span>
+        </td>
+        <td>
+          <button class="btn btn-secondary btn-sm" (click)="onEdit(cat)">Edit</button>
+          <button class="btn btn-danger btn-sm" (click)="onDelete(cat)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

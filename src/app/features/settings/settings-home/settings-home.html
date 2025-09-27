@@ -1,0 +1,15 @@
+<app-header></app-header>
+<div class="settings-container">
+  <aside class="settings-sidebar">
+    <ul>
+      <li routerLink="business-profile" routerLinkActive="active">Business Profile</li>
+      <li routerLink="categories" routerLinkActive="active">Categories</li>
+      <li routerLink="vendors" routerLinkActive="active">Vendors</li>
+      <li routerLink="products" routerLinkActive="active">Products</li>
+    </ul>
+  </aside>
+
+  <main class="settings-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

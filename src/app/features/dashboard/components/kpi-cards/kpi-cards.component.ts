@@ -8,14 +8,19 @@ import { TransactionService } from '../../../../core/services/transaction.servic
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="kpi-cards">
+    <div class="kpi-cards" *ngIf="businessService.currentBusiness$ | async as currentBusiness">
       <!-- Current Balance Card -->
-      <div class="kpi-card" [class.low-balance]="isLowBalance">
+      <div
+        class="kpi-card"
+        [class.low-balance]="
+          (currentBusiness?.initial_balance ?? 0) <= (currentBusiness?.low_balance_threshold ?? 0)
+        "
+      >
         <div class="card-icon">💰</div>
         <div class="card-content">
           <h3>Current Balance</h3>
-          <p class="amount">PKR {{ currentBalance | number }}</p>
-          <span class="subtext">Initial: PKR {{ initialBalance | number }}</span>
+          <p class="amount">PKR {{ currentBusiness.current_balance | number }}</p>
+          <span class="subtext">Initial: PKR {{ currentBusiness.initial_balance | number }}</span>
         </div>
       </div>
 
@@ -40,11 +45,16 @@ import { TransactionService } from '../../../../core/services/transaction.servic
       </div>
 
       <!-- Low Balance Warning Card -->
-      <div class="kpi-card warning" *ngIf="isLowBalance">
+      <div
+        class="kpi-card warning"
+        *ngIf="
+          (currentBusiness.current_balance ?? 0) <= (currentBusiness.low_balance_threshold ?? 0)
+        "
+      >
         <div class="card-icon">⚠️</div>
         <div class="card-content">
           <h3>Low Balance Alert</h3>
-          <p class="amount">Below PKR {{ lowBalanceThreshold | number }}</p>
+          <p class="amount">Below PKR {{ currentBusiness.low_balance_threshold | number }}</p>
           <span class="subtext">Add funds soon</span>
         </div>
       </div>
@@ -120,34 +130,14 @@ import { TransactionService } from '../../../../core/services/transaction.servic
   ],
 })
 export class KpiCardsComponent implements OnInit {
-  private businessService = inject(BusinessService);
   private transactionService = inject(TransactionService);
+  businessService = inject(BusinessService);
 
-  currentBalance = 0;
-  initialBalance = 0;
-  lowBalanceThreshold = 0;
   todaysSpend = 0;
   mtdSpend = 0;
   today = new Date();
 
   ngOnInit() {
-    this.updateKPIs();
-
-    // Subscribe to business changes
-    this.businessService.currentBusiness$.subscribe(() => {
-      this.updateKPIs();
-    });
-  }
-
-  get isLowBalance(): boolean {
-    return this.currentBalance <= this.lowBalanceThreshold;
-  }
-
-  private updateKPIs(): void {
-    const currentBusiness = this.businessService.getCurrentBusiness();
-    this.currentBalance = currentBusiness.currentBalance;
-    this.initialBalance = currentBusiness.initialBalance;
-    this.lowBalanceThreshold = currentBusiness.lowBalanceThreshold;
     this.todaysSpend = this.transactionService.getTodaysExpenses();
     this.mtdSpend = this.transactionService.getMTDExpenses();
   }

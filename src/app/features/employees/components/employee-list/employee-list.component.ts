@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { HeaderComponent } from '../../../../core/components/header/header.component';
 import { BusinessService } from '../../../../core/services/business.service';
 import { EmployeeService } from '../../../../core/services/employee.service';
 import { AddEmployeeModalComponent } from '../add-employee-modal/add-employee-modal.component';
@@ -9,8 +10,9 @@ import { SalaryPaymentModalComponent } from '../salary-payment-modal/salary-paym
 @Component({
   selector: 'app-employee-list',
   standalone: true,
-  imports: [CommonModule, AddEmployeeModalComponent, SalaryPaymentModalComponent],
+  imports: [CommonModule, AddEmployeeModalComponent, SalaryPaymentModalComponent, HeaderComponent],
   template: `
+    <app-header></app-header>
     <div class="employee-management">
       <div class="header">
         <h2>Employee Management</h2>

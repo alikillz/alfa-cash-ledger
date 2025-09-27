@@ -17,7 +17,7 @@ export class TransactionService {
   // Get transactions for current business
   getCurrentBusinessTransactions() {
     const currentBusiness = this.businessService.getCurrentBusiness();
-    return this.transactions.filter((t) => t.businessId === currentBusiness.id);
+    return this.transactions.filter((t) => t.businessId === currentBusiness?.id);
   }
 
   // Get today's expenses for current business
@@ -28,7 +28,7 @@ export class TransactionService {
     return this.transactions
       .filter(
         (t) =>
-          t.businessId === currentBusiness.id &&
+          t.businessId === currentBusiness?.id &&
           (t.type === 'EXPENSE' || t.type === 'SALARY_PAYMENT') &&
           new Date(t.date).toDateString() === today // ← Check date for BOTH types
       )
@@ -44,7 +44,7 @@ export class TransactionService {
     return this.transactions
       .filter(
         (t) =>
-          t.businessId === currentBusiness.id &&
+          t.businessId === currentBusiness?.id &&
           (t.type === 'EXPENSE' || t.type === 'SALARY_PAYMENT') &&
           new Date(t.date) >= firstDayOfMonth // ← Check date for BOTH types
       )
@@ -62,14 +62,15 @@ export class TransactionService {
     this.transactionsSubject.next([...this.transactions]);
 
     // Update business balance
-    if (transaction.type === 'TOP_UP') {
-      const newBalance =
-        this.businessService.getCurrentBusiness().currentBalance + transaction.amount;
+    const currentBusiness = this.businessService.getCurrentBusiness();
+    if (transaction.type === 'TOP_UP' && currentBusiness != null) {
+      const newBalance = currentBusiness.current_balance + transaction.amount;
       this.businessService.updateBusinessBalance(transaction.businessId, newBalance);
     } else {
-      const newBalance =
-        this.businessService.getCurrentBusiness().currentBalance - transaction.amount;
-      this.businessService.updateBusinessBalance(transaction.businessId, newBalance);
+      if (currentBusiness != null) {
+        const newBalance = currentBusiness.current_balance - transaction.amount;
+        this.businessService.updateBusinessBalance(transaction.businessId, newBalance);
+      }
     }
   }
 

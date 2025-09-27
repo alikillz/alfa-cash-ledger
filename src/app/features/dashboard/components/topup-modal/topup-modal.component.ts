@@ -469,7 +469,7 @@ export class TopupModalComponent {
       const currentBusiness = this.businessService.getCurrentBusiness();
 
       const topup: TopUp = {
-        businessId: currentBusiness.id,
+        businessId: currentBusiness?.id || '0',
         amount: formData.amount!,
         date: formData.date!,
         handedTo: formData.handedTo!,

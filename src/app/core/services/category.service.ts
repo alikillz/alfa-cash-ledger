@@ -1,29 +1,34 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { Category } from '../models/category.model';
+import { SupabaseService } from './Supabase/supabase.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class CategoryService {
-  private categoriesSignal = signal<string[]>([
-    'Fuel',
-    'Utilities',
-    'Maintenance',
-    'Supplies',
-    'Build–Civil',
-    'Build–Mechanical',
-    'Build–Electrical',
-  ]);
+  private supabase = inject(SupabaseService).client;
 
-  categories$ = this.categoriesSignal.asReadonly();
+  async getCategories(businessId: string): Promise<Category[]> {
+    const { data, error } = await this.supabase
+      .from('categories')
+      .select('*')
+      .eq('business_id', businessId)
+      .order('created_at', { ascending: false });
 
-  addCategory(newCategory: string): void {
-    const current = this.categoriesSignal();
-    if (!current.includes(newCategory)) {
-      this.categoriesSignal.set([...current, newCategory]);
-    }
+    if (error) throw error;
+    return data ?? [];
   }
 
-  getCategories(): string[] {
-    return this.categoriesSignal(); // ← FIXED
+  async addCategory(category: Omit<Category, 'id' | 'created_at'>): Promise<void> {
+    const { error } = await this.supabase.from('categories').insert([category]);
+    if (error) throw error;
+  }
+
+  async updateCategory(id: string, updates: Partial<Category>): Promise<void> {
+    const { error } = await this.supabase.from('categories').update(updates).eq('id', id);
+    if (error) throw error;
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    const { error } = await this.supabase.from('categories').delete().eq('id', id);
+    if (error) throw error;
   }
 }

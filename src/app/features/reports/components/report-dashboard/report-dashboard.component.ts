@@ -1,13 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HeaderComponent } from '../../../../core/components/header/header.component';
 import { ReportFilters, ReportService } from '../../../../core/services/report.service';
 
 @Component({
   selector: 'app-report-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HeaderComponent],
   template: `
+    <app-header></app-header>
     <div class="report-dashboard">
       <!-- Header -->
       <div class="dashboard-header">

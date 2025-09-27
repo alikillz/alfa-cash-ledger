@@ -20,7 +20,7 @@ export class AddCategoryModalComponent {
   private categoryService = inject(CategoryService);
   @Output() closed = new EventEmitter<void>(); // ← Add this
   onSave(categoryName: string): void {
-    this.categoryService.addCategory(categoryName);
+    //this.categoryService.addCategory(categoryName);
   }
 
   onClose(): void {

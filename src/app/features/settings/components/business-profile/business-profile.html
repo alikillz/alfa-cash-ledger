@@ -1,0 +1,89 @@
+<div class="business-form-container">
+  <div class="business-form-card">
+    <div class="form-header">
+      <h2>Business Profile</h2>
+    </div>
+
+    <form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()" class="business-form">
+      <!-- Business Info -->
+      <div class="form-section">
+        <h3>Basic Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Business Name *</label>
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              placeholder="Enter business name"
+              [class.error]="form.get('name')?.invalid && form.get('name')?.touched"
+            />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+            <div class="error-message">Business name is required</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Balance Settings -->
+      <div class="form-section">
+        <h3>Balance Settings</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="current_balance">Current Balance *</label>
+            <input
+              id="current_balance"
+              type="number"
+              formControlName="current_balance"
+              placeholder="0"
+              min="0"
+              [class.error]="
+                form.get('current_balance')?.invalid && form.get('current_balance')?.touched
+              "
+            />
+            @if (form.get('current_balance')?.invalid && form.get('current_balance')?.touched) {
+            <div class="error-message">Valid balance is required</div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="initial_balance">Initial Balance *</label>
+            <input
+              id="initial_balance"
+              type="number"
+              formControlName="initial_balance"
+              placeholder="0"
+              min="0"
+              [class.error]="
+                form.get('initial_balance')?.invalid && form.get('initial_balance')?.touched
+              "
+            />
+            @if (form.get('initial_balance')?.invalid && form.get('initial_balance')?.touched) {
+            <div class="error-message">Valid balance is required</div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="low_balance_threshold">Low Balance Threshold</label>
+            <input
+              id="low_balance_threshold"
+              type="number"
+              formControlName="low_balance_threshold"
+              placeholder="e.g., 5000"
+              min="0"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+          Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

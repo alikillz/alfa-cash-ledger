@@ -1,81 +1,68 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { AuthService } from './auth.service';
+import { SupabaseService } from './Supabase/supabase.service';
 
 export interface Business {
   id: string;
   name: string;
   timezone: string;
-  currentBalance: number;
-  lowBalanceThreshold: number;
-  initialBalance: number;
+  current_balance: number;
+  low_balance_threshold: number;
+  initial_balance: number;
   status: 'active' | 'inactive';
+  created_at: string;
+  updated_at: string;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class BusinessService {
-  private authService = inject(AuthService);
-
-  private businesses: Business[] = [
-    {
-      id: '1',
-      name: 'ALFA Petroleum',
-      timezone: 'Asia/Karachi',
-      currentBalance: 100000,
-      lowBalanceThreshold: 50000,
-      initialBalance: 100000,
-      status: 'active',
-    },
-    {
-      id: '2',
-      name: 'Alfa Stand',
-      timezone: 'Asia/Karachi',
-      currentBalance: 10000,
-      lowBalanceThreshold: 50000,
-      initialBalance: 100000,
-      status: 'active',
-    },
-    {
-      id: '3',
-      name: 'ALFA Bagh',
-      timezone: 'Asia/Karachi',
-      currentBalance: 5000,
-      lowBalanceThreshold: 5000,
-      initialBalance: 100000,
-      status: 'active',
-    },
-  ];
-
-  private currentBusinessSubject = new BehaviorSubject<Business>(this.businesses[0]);
+  private businesses: Business[] = [];
+  private currentBusinessSubject = new BehaviorSubject<Business | null>(null);
   public currentBusiness$ = this.currentBusinessSubject.asObservable();
 
-  constructor() {
+  constructor(private supabase: SupabaseService, private authService: AuthService) {
     this.loadSavedBusiness();
   }
 
-  // Get all businesses (with role-based access)
-  getBusinesses(): Business[] {
+  // 🔹 Load businesses from Supabase
+  async fetchBusinesses(): Promise<Business[]> {
     const user = this.authService.currentUser;
+    if (!user) return [];
 
-    if (user?.role === 'owner') {
-      return this.businesses; // Owners see all businesses
+    let query = this.supabase.client.from('businesses').select('*');
+
+    if (user.role === 'manager') {
+      query = query.eq('id', user.currentBusinessId);
     }
 
-    // Managers only see their current assigned business
-    const currentBusiness = this.businesses.find((b) => b.id === user?.currentBusinessId);
-    return currentBusiness ? [currentBusiness] : [];
+    const { data, error } = await query;
+    if (error) throw error;
+
+    this.businesses = data ?? [];
+
+    // Ensure current business is valid
+    const savedId = localStorage.getItem('current_business_id');
+    const found = this.businesses.find((b) => b.id === savedId);
+    if (found) {
+      this.currentBusinessSubject.next(found);
+    } else if (this.businesses.length > 0) {
+      this.setCurrentBusiness(this.businesses[0].id);
+    }
+    console.log(this.businesses);
+    return this.businesses;
   }
 
-  // Set current business (with role validation)
+  getBusinesses(): Business[] {
+    return this.businesses;
+  }
+
   setCurrentBusiness(businessId: string): boolean {
     const user = this.authService.currentUser;
     const business = this.businesses.find((b) => b.id === businessId);
 
     if (!business) return false;
 
-    // Role-based validation
     if (user?.role === 'manager' && business.id !== user.currentBusinessId) {
       console.warn('Managers can only access their assigned business');
       return false;
@@ -86,32 +73,79 @@ export class BusinessService {
     return true;
   }
 
-  // Get current business
-  getCurrentBusiness(): Business {
+  getCurrentBusiness(): Business | null {
     return this.currentBusinessSubject.value;
   }
 
-  // Load saved business from storage
   private loadSavedBusiness(): void {
-    const savedBusinessId = localStorage.getItem('current_business_id');
-    if (savedBusinessId) {
-      const business = this.businesses.find((b) => b.id === savedBusinessId);
+    const savedId = localStorage.getItem('current_business_id');
+    if (savedId) {
+      const business = this.businesses.find((b) => b.id === savedId);
       if (business) {
         this.currentBusinessSubject.next(business);
       }
     }
   }
 
-  // Update business balance (for transactions)
+  async addBusiness(payload: {
+    name: string;
+    description?: string;
+    currency?: string;
+    initialBalance: number;
+  }) {
+    const user = this.authService.currentUser;
+    if (!user) throw new Error('Not authenticated');
+
+    const { data, error } = await this.supabase.client
+      .from('businesses')
+      .insert({
+        name: payload.name,
+        description: payload.description,
+        currency: payload.currency ?? 'PKR',
+        initial_balance: payload.initialBalance,
+        created_by: user.id,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    this.businesses.push(data);
+    this.setCurrentBusiness(data.id);
+    return data;
+  }
+
   updateBusinessBalance(businessId: string, newBalance: number): void {
     const business = this.businesses.find((b) => b.id === businessId);
     if (business) {
-      business.currentBalance = newBalance;
-
-      // If updating current business, notify subscribers
-      if (businessId === this.currentBusinessSubject.value.id) {
+      business.current_balance = newBalance;
+      if (businessId === this.currentBusinessSubject.value?.id) {
         this.currentBusinessSubject.next({ ...business });
       }
     }
+  }
+
+  async updateBusiness(updatedBiz: Partial<Business>) {
+    const current = this.getCurrentBusiness();
+    if (!current) throw new Error('No business selected');
+
+    const { data, error } = await this.supabase.client
+      .from('businesses')
+      .update(updatedBiz)
+      .eq('id', current.id)
+      .select()
+      .single();
+
+    console.log(error);
+
+    if (error) throw error;
+
+    // Update BehaviorSubject so UI reacts
+    this.currentBusinessSubject.next({
+      ...current,
+      ...data,
+    });
+
+    return data;
   }
 }

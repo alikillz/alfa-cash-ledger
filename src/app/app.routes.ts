@@ -34,6 +34,38 @@ export const routes: Routes = [
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
     canActivate: [AuthGuard],
   },
+
+  {
+    path: 'settings',
+    loadComponent: () =>
+      import('./features/settings/settings-home/settings-home').then((m) => m.SettingsHome),
+    children: [
+      {
+        path: 'business-profile',
+        loadComponent: () =>
+          import('./features/settings/components/business-profile/business-profile').then(
+            (m) => m.BusinessProfile
+          ),
+      },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('./features/settings/components/categories/categories').then((m) => m.Categories),
+      },
+      {
+        path: 'vendors',
+        loadComponent: () =>
+          import('./features/settings/components/vendors/vendors').then((m) => m.Vendors),
+      },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./features/settings/components/products/products').then((m) => m.Products),
+      },
+      { path: '', redirectTo: 'business-profile', pathMatch: 'full' },
+    ],
+  },
+
   {
     path: '',
     redirectTo: '/dashboard', // ← Change this to dashboard instead of login

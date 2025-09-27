@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { map } from 'rxjs';
+import { CanActivate, Router, UrlTree } from '@angular/router';
+import { Observable } from 'rxjs';
+import { filter, map, take } from 'rxjs/operators';
 import { AuthService } from '../services/Supabase/auth.service';
 
 @Injectable({
@@ -10,15 +11,17 @@ export class AuthGuard implements CanActivate {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  canActivate() {
+  canActivate(): Observable<boolean | UrlTree> {
     return this.authService.authState$.pipe(
-      map((state: { isAuthenticated: any }) => {
+      // wait until auth service has finished initializing
+      filter((state) => !state.isLoading),
+      take(1),
+      map((state) => {
         if (state.isAuthenticated) {
           return true;
-        } else {
-          this.router.navigate(['/login']);
-          return false;
         }
+        // redirect if not authenticated
+        return this.router.createUrlTree(['/login']);
       })
     );
   }
