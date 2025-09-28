@@ -76,7 +76,7 @@ export class ReportService {
 
     // 1. Get transactions for THIS BUSINESS only
     const businessTransactions = allTransactions.filter(
-      (t) => t.businessId === currentBusiness?.id
+      (t) => t.business_id === currentBusiness?.id
     );
 
     // 2. CORRECT Opening Balance: Balance at START of report period
@@ -199,7 +199,7 @@ export class ReportService {
 
   // Helper methods
   private getFilteredTransactions(filters: ReportFilters): any[] {
-    let transactions = this.transactionService.getCurrentBusinessTransactions();
+    let transactions = this.transactionService.getAllTransactions();
 
     // Filter by date
     transactions = transactions.filter((t) => {
@@ -209,11 +209,11 @@ export class ReportService {
 
     // Additional filters can be added here
     if (filters.category) {
-      transactions = transactions.filter((t) => t.category === filters.category);
+      transactions = transactions.filter((t) => t.category_id === filters.category);
     }
 
     if (filters.vendor) {
-      transactions = transactions.filter((t) => t.vendorName?.includes(filters.vendor!));
+      transactions = transactions.filter((t) => t.vendor_name?.includes(filters.vendor!));
     }
 
     return transactions;

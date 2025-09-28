@@ -20,7 +20,7 @@ export class AddVendorModalComponent {
   private vendorService = inject(VendorService);
   @Output() closed = new EventEmitter<void>(); // ← Add this
   onSave(vendorName: string): void {
-    this.vendorService.addVendor(vendorName);
+    // this.vendorService.addVendor(vendorName);
   }
 
   onClose(): void {

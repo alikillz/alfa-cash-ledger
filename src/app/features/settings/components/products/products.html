@@ -1,1 +1,85 @@
-<p>products works!</p>
+<div class="business-form-container">
+  <div class="business-form-card">
+    <div class="form-header">
+      <h2>Categories</h2>
+    </div>
+    <form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()" class="business-form">
+      <div class="form-section">
+        <h3>Basic Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Product Name*</label>
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              placeholder="Enter Product name"
+              [class.error]="form.get('name')?.invalid && form.get('name')?.touched"
+            />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+            <div class="error-message">Product name is required</div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="category">Category *</label>
+            <select
+              id="category"
+              formControlName="category_id"
+              [class.error]="form.get('category_id')?.invalid && form.get('category_id')?.touched"
+            >
+              <option value="">Select category</option>
+              @for (cat of categories$ | async; track cat.id) {
+              <option [value]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+
+            @if (form.get('category_id')?.invalid && form.get('category_id')?.touched) {
+            <div class="error-message">Category is required</div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="status">Status *</label>
+            <select id="status" formControlName="status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- List -->
+<div class="categories-list">
+  <h3>Existing Products</h3>
+
+  <table *ngIf="products$ | async as products" class="category-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let cat of products">
+        <td>{{ cat.name }}</td>
+        <td>{{ getCategoryName(cat.category_id) }}</td>
+        <td>{{ cat.status }}</td>
+        <td>
+          <button (click)="onDelete(cat)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

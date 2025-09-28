@@ -1,9 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { combineLatest, map } from 'rxjs';
 import { Transaction } from '../../../../core/models/transaction.model';
 import { BusinessService } from '../../../../core/services/business.service';
+import { CategoryService } from '../../../../core/services/category.service';
+import { EmployeeService } from '../../../../core/services/employee.service';
+import { ProductService } from '../../../../core/services/product.service';
 import { TransactionService } from '../../../../core/services/transaction.service';
+import { VendorService } from '../../../../core/services/vendor.service';
 import { TitleCasePipe } from '../../../../shared/pipes/titlecase-pipe';
 
 @Component({
@@ -42,7 +47,7 @@ import { TitleCasePipe } from '../../../../shared/pipes/titlecase-pipe';
           <span>Start by adding your first expense or top-up</span>
         </div>
         } @else {
-        <div class="transaction-table">
+        <div *ngIf="transactions$ | async as transaction" class="transaction-table">
           <!-- Table Header -->
           <div class="table-header">
             <div class="col-date">Date</div>
@@ -53,7 +58,7 @@ import { TitleCasePipe } from '../../../../shared/pipes/titlecase-pipe';
           </div>
 
           <!-- Table Rows -->
-          @for (transaction of filteredTransactions(); track transaction.id) {
+          @for (transaction of transactions$ | async; track transaction.id) {
           <div
             class="table-row"
             [class.expense]="transaction.type === 'EXPENSE'"
@@ -70,17 +75,17 @@ import { TitleCasePipe } from '../../../../shared/pipes/titlecase-pipe';
                 @if (transaction.type === 'TOP_UP') {
                 {{ transaction.handedTo }}
                 } @else {
-                {{ transaction.vendorName || 'N/A' }}
+                {{ transaction.vendor_name || 'N/A' }}
                 }
               </div>
-              @if (transaction.productName) {
-              <div class="product-name">{{ transaction.productName }}</div>
+              @if (transaction.product_name) {
+              <div class="product-name">{{ transaction.product_name }}</div>
               }
             </div>
             <div class="col-category">
               @if (transaction.type === 'TOP_UP') { {{ transaction.method }}
               } @else {
-              {{ transaction.category || 'N/A' }}
+              {{ transaction.category_id || 'N/A' }}
               }
             </div>
             <div class="col-amount">
@@ -315,31 +320,75 @@ import { TitleCasePipe } from '../../../../shared/pipes/titlecase-pipe';
 export class TransactionListComponent implements OnInit {
   private businessService = inject(BusinessService);
   private transactionService = inject(TransactionService);
+  private categoryService = inject(CategoryService);
+  private vendorService = inject(VendorService);
+  private productService = inject(ProductService);
+  private employeeService = inject(EmployeeService);
 
-  transactions = signal<Transaction[]>([]);
+  transactions$ = this.transactionService.transactions$; // subscribe via async pipe
+
   filterType = signal<'ALL' | 'EXPENSE' | 'TOP_UP' | 'SALARY_PAYMENT'>('ALL');
   searchQuery = signal('');
 
+  // Derived transactions with names
   filteredTransactions = signal<Transaction[]>([]);
 
   ngOnInit() {
-    this.loadTransactions();
+    const currentBusiness$ = this.businessService.currentBusiness$;
+    const currentBusiness = this.businessService.getCurrentBusiness();
+    const currentBusinessId = currentBusiness?.id ?? '';
 
-    // Subscribe to business changes
-    this.businessService.currentBusiness$.subscribe(() => {
-      this.loadTransactions();
+    if (!currentBusinessId) return;
+
+    // Combine transactions and reference data streams
+    combineLatest([
+      this.transactionService.transactions$,
+      this.categoryService.getCategories(currentBusinessId),
+      this.vendorService.getVendor(currentBusinessId),
+      this.productService.getProduct(currentBusinessId),
+      this.employeeService.employees$,
+      currentBusiness$,
+    ])
+      .pipe(
+        map(([transactions, categories, vendors, products, employees, currentBusiness]) => {
+          if (!currentBusiness) return [];
+
+          // Filter by current business
+          let businessTransactions = transactions.filter(
+            (t) => t.business_id === currentBusiness.id
+          );
+
+          // Map IDs to names
+          businessTransactions = businessTransactions.map((t) => ({
+            ...t,
+            categoryName: categories.find((c) => c.id === t.category_id)?.name || '-',
+            vendorName: vendors.find((v) => v.id === t.vendor_name)?.name || '-',
+            productName: products.find((p) => p.id === t.product_name)?.name || '-',
+            employeeName: employees.find((e) => e.id === t.employeeId)?.name || '-',
+          }));
+
+          return businessTransactions;
+        })
+      )
+      .subscribe((transactions) => {
+        this.filteredTransactions.set(transactions);
+        this.applyFilters();
+      });
+
+    // Reactively apply filters when search or type changes
+
+    effect(() => {
+      this.filterType(); // Track the signal value
+      this.applyFilters(); // This runs whenever filterType changes
+    });
+    effect(() => {
+      this.searchQuery(); // Track the signal value
+      this.applyFilters(); // This runs whenever filterType changes
     });
   }
 
-  loadTransactions(): void {
-    const currentBusiness = this.businessService.getCurrentBusiness();
-    const transactions = this.transactionService.getCurrentBusinessTransactions();
-    this.transactions.set(transactions);
-    this.applyFilters();
-  }
-
   applyFilters(): void {
-    let filtered = this.transactions();
+    let filtered = this.filteredTransactions();
 
     // Filter by type
     if (this.filterType() !== 'ALL') {
@@ -351,9 +400,9 @@ export class TransactionListComponent implements OnInit {
       const query = this.searchQuery().toLowerCase();
       filtered = filtered.filter(
         (t) =>
-          t.vendorName?.toLowerCase().includes(query) ||
-          t.productName?.toLowerCase().includes(query) ||
-          t.category?.toLowerCase().includes(query)
+          t.vendor_name?.toLowerCase().includes(query) ||
+          t.product_name?.toLowerCase().includes(query) ||
+          t.category_id?.toLowerCase().includes(query)
       );
     }
 
@@ -368,7 +417,7 @@ export class TransactionListComponent implements OnInit {
       if (t.type === 'EXPENSE' || t.type === 'SALARY_PAYMENT') {
         return total - t.amount; // Money OUT
       } else {
-        return total + t.amount; // Money IN (only TOP_UP)
+        return total + t.amount; // Money IN (TOP_UP)
       }
     }, 0);
   }

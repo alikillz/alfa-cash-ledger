@@ -1,31 +1,34 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { Vendor } from '../models/vendor';
+import { SupabaseService } from './Supabase/supabase.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class VendorService {
-  // Signal containing the vendors array
-  private vendorsSignal = signal<string[]>([
-    'Shell',
-    'Caltex',
-    'PTCL',
-    'K-Electric',
-    'Local Market',
-    'Auto Workshop',
-  ]);
+  private supabase = inject(SupabaseService).client;
 
-  // Public read-only signal
-  vendors$ = this.vendorsSignal.asReadonly();
-
-  addVendor(newVendor: string): void {
-    const current = this.vendorsSignal();
-    if (!current.includes(newVendor)) {
-      this.vendorsSignal.set([...current, newVendor]);
-    }
+  async getVendor(businessId: string): Promise<Vendor[]> {
+    const { data, error } = await this.supabase
+      .from('vendors')
+      .select('id,business_id ,name, phone, status')
+      .eq('business_id', businessId)
+      .order('created_at', { ascending: false });
+    console.log('got from database');
+    if (error) throw error;
+    return data ?? [];
   }
 
-  // FIXED: Return the signal value, not call itself
-  getVendors(): string[] {
-    return this.vendorsSignal(); // ← Get the current value
+  async addVendor(category: Omit<Vendor, 'id' | 'created_at'>): Promise<void> {
+    const { error } = await this.supabase.from('vendors').insert([category]);
+    if (error) throw error;
+  }
+
+  async updateVendor(id: string, updates: Partial<Vendor>): Promise<void> {
+    const { error } = await this.supabase.from('vendors').update(updates).eq('id', id);
+    if (error) throw error;
+  }
+
+  async deleteVendor(id: string): Promise<void> {
+    const { error } = await this.supabase.from('vendors').delete().eq('id', id);
+    if (error) throw error;
   }
 }

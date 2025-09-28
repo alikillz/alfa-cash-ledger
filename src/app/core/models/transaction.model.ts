@@ -1,46 +1,48 @@
 export interface Expense {
   id?: string;
-  businessId: string;
+  business_id: string;
   amount: number;
   date: Date;
-  category: string;
-  vendorName: string;
-  productName?: string;
+  category_id: string;
+  vendor_name: string;
+  product_name?: string;
   quantity?: number;
-  taxAmount?: number;
+  tax_amount?: number;
   location?: string;
   notes?: string;
-  receiptImage?: File | string;
+  receipt_image_url?: string;
   ocrExtracted?: any;
 }
 
 export interface ExpenseFormData {
   amount: number;
   date: Date;
-  category: string;
-  vendorName: string;
-  productName?: string;
+  category_id: string;
+  vendor_name: string;
+  product_name?: string;
   quantity?: number;
-  taxAmount?: number;
+  tax_amount?: number;
   location?: string;
   notes?: string;
-  receiptImage?: File;
+  receipt_image_url?: string;
 }
 
 export interface Transaction {
   id: string;
-  businessId: string;
+  business_id: string;
   type: 'TOP_UP' | 'EXPENSE' | 'SALARY_PAYMENT';
   amount: number;
   date: Date;
-  category?: string;
-  vendorName?: string; // Make sure this exists
-  productName?: string; // Add this property
+  category_id?: string;
+  vendor_name?: string; // Make sure this exists
+  product_name?: string; // Add this property
   description?: string; // This might be what you meant to use
+  tax_amount?: number;
   // Add Top-Up specific properties (optional)
   handedTo?: string; // For TOP_UP transactions
   method?: string; // For TOP_UP transactions
   transferReason?: string;
+  receipt_image_url?: string;
   // Add Salary specific properties (optional - for future)
   employeeId?: string; // For SALARY_PAYMENT transactions
   period?: string; // For SALARY_PAYMENT transactions
@@ -48,7 +50,7 @@ export interface Transaction {
 
 export interface TopUp {
   id?: string;
-  businessId: string;
+  business_id: string;
   amount: number;
   date: Date;
   handedTo: string; // Manager name

@@ -9,10 +9,10 @@ export class CategoryService {
   async getCategories(businessId: string): Promise<Category[]> {
     const { data, error } = await this.supabase
       .from('categories')
-      .select('*')
+      .select('id,business_id ,name, description, status')
       .eq('business_id', businessId)
       .order('created_at', { ascending: false });
-
+    console.log('got from database');
     if (error) throw error;
     return data ?? [];
   }

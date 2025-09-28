@@ -54,6 +54,9 @@ export class EmployeeService {
     const currentBusiness = this.businessService.getCurrentBusiness();
     return this.employees.filter((emp) => emp.businessId === currentBusiness?.id && emp.active);
   }
+  getEmployeesByBussinessId(currentBusiness: any): Employee[] {
+    return this.employees.filter((emp) => emp.businessId === currentBusiness?.id && emp.active);
+  }
 
   // Get employee by ID
   getEmployeeById(id: string): Employee | undefined {

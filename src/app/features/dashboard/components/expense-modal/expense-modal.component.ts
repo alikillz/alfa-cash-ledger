@@ -1,9 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Category } from '../../../../core/models/category.model';
+import { Employee } from '../../../../core/models/empolyee.model';
+import { Product } from '../../../../core/models/product.model';
 import { Expense } from '../../../../core/models/transaction.model';
+import { Vendor } from '../../../../core/models/vendor';
 import { BusinessService } from '../../../../core/services/business.service';
 import { CategoryService } from '../../../../core/services/category.service';
+import { EmployeeService } from '../../../../core/services/employee.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { TransactionService } from '../../../../core/services/transaction.service';
 import { VendorService } from '../../../../core/services/vendor.service';
@@ -22,7 +27,7 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
     AddProductModalComponent,
   ],
   template: `
-    <!--div class="modal-overlay" (click)="onClose()">
+    <div class="modal-overlay" (click)="onClose()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>Add New Expense</h2>
@@ -30,7 +35,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
         </div>
 
         <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()" class="expense-form">
-         
           <div class="form-group">
             <label for="amount">Amount (PKR) *</label>
             <input
@@ -49,7 +53,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-         
           <div class="form-group">
             <label for="date">Date *</label>
             <input
@@ -63,7 +66,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          
           <div class="form-group">
             <div class="form-header">
               <label for="category">Category *</label>
@@ -79,8 +81,8 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
               "
             >
               <option value="">Select category</option>
-              @for (category of categories(); track category) {
-              <option [value]="category">{{ category }}</option>
+              @for (category of categories; track category) {
+              <option [value]="category.id">{{ category.name }}</option>
               }
             </select>
             @if (expenseForm.get('category')?.invalid && expenseForm.get('category')?.touched) {
@@ -88,7 +90,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          
           <div class="form-group">
             <div class="form-header">
               <label for="vendorName">Vendor *</label>
@@ -104,8 +105,8 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
               "
             >
               <option value="">Select vendor</option>
-              @for (vendor of vendors(); track vendor) {
-              <option [value]="vendor">{{ vendor }}</option>
+              @for (vendor of vendors; track vendor) {
+              <option [value]="vendor.id">{{ vendor.name }}</option>
               }
             </select>
             @if (expenseForm.get('vendorName')?.invalid && expenseForm.get('vendorName')?.touched) {
@@ -113,7 +114,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          
           <div class="form-group">
             <div class="form-header">
               <label for="productName">Product *</label>
@@ -129,8 +129,8 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
               "
             >
               <option value="">Select product</option>
-              @for (product of products(); track product) {
-              <option [value]="product">{{ product }}</option>
+              @for (product of products; track product) {
+              <option [value]="product.id">{{ product.name }}</option>
               }
             </select>
             @if (expenseForm.get('productName')?.invalid && expenseForm.get('productName')?.touched)
@@ -139,7 +139,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          
           <div class="form-group">
             <label for="quantity">Quantity *</label>
             <input
@@ -158,7 +157,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-        
           <div class="form-group">
             <label for="location">Location *</label>
             <input
@@ -175,7 +173,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-        
           <div class="form-group">
             <label for="notes">Expense description</label>
             <textarea
@@ -190,7 +187,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          
           <div class="form-group">
             <label for="receipt">Receipt Image (Optional)</label>
             <input
@@ -208,7 +204,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
             }
           </div>
 
-          
           <div class="form-actions">
             <button type="button" (click)="onClose()" class="btn btn-secondary">Cancel</button>
             <button
@@ -225,15 +220,15 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
           </div>
         </form>
       </div>
-    </!--div>
-   
+    </div>
+
     @if (showCategoryModal) {
     <app-add-category-modal (closed)="showCategoryModal = false"></app-add-category-modal>
     } @if (showVendorModal) {
     <app-add-vendor-modal (closed)="showVendorModal = false"></app-add-vendor-modal>
     } @if (showProductModal) {
     <app-add-product-modal (closed)="showProductModal = false"></app-add-product-modal>
-} -->
+    }
   `,
   styles: [
     `
@@ -474,19 +469,18 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
 export class ExpenseModalComponent {
   private fb = inject(FormBuilder);
   private businessService = inject(BusinessService);
-  private transactionService = inject(TransactionService);
-  private categoryService = inject(CategoryService);
-  private vendorService = inject(VendorService);
-  private productService = inject(ProductService);
   selectedFile: File | null = null;
   isSubmitting = false;
+  categories: Category[] = [];
+  vendors: Vendor[] = [];
+  products: Product[] = [];
+  employees: Employee[] = [];
 
   @Output() closed = new EventEmitter<void>();
   @Output() expenseAdded = new EventEmitter<void>();
 
-  categories = this.categoryService.getCategories;
-  vendors = this.vendorService.getVendors;
-  products = this.productService.getProducts;
+  //vendors = this.vendorService.getVendors;
+  //products = this.productService.getProducts;
 
   expenseForm = this.fb.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
@@ -502,12 +496,30 @@ export class ExpenseModalComponent {
   showCategoryModal = false;
   showVendorModal = false;
   showProductModal = false;
+  currentBusinessId: string = '';
 
-  ngOnInit() {
+  constructor(
+    private categoryService: CategoryService,
+    private vendorService: VendorService,
+    private productService: ProductService,
+    private employeeService: EmployeeService,
+    private transactionService: TransactionService
+  ) {}
+
+  async ngOnInit() {
     // Subscribe to changes to refresh dropdowns
     //this.categories = this.categoryService.categories$;
-    this.vendors = this.vendorService.vendors$;
-    this.products = this.productService.products$;
+    // this.vendors = this.vendorService.vendors$;
+    // this.products = this.productService.products$;
+    const currentBusiness = this.businessService.getCurrentBusiness();
+    this.currentBusinessId = currentBusiness?.id ?? '';
+
+    if (!this.currentBusinessId) return; // safety check
+
+    this.categories = await this.categoryService.getCategories(this.currentBusinessId);
+    this.vendors = await this.vendorService.getVendor(this.currentBusinessId);
+    this.products = await this.productService.getProduct(this.currentBusinessId);
+    this.employees = await this.employeeService.getEmployeesByBussinessId(this.currentBusinessId);
   }
 
   onClose(): void {
@@ -535,20 +547,19 @@ export class ExpenseModalComponent {
       this.isSubmitting = true;
 
       const formData = this.expenseForm.value;
-      const currentBusiness = this.businessService.getCurrentBusiness();
 
       const expense: Expense = {
-        businessId: currentBusiness?.id || '0',
+        business_id: this.currentBusinessId || '0',
         amount: formData.amount!,
         date: formData.date!,
-        category: formData.category!,
-        vendorName: formData.vendorName!,
-        productName: formData.productName ?? undefined,
+        category_id: formData.category!,
+        vendor_name: formData.vendorName!,
+        product_name: formData.productName ?? undefined,
         quantity: formData.quantity ?? undefined,
-        taxAmount: formData.taxAmount ?? undefined,
+        tax_amount: formData.taxAmount ?? 0,
         location: formData.location ?? undefined,
         notes: formData.notes ?? undefined,
-        receiptImage: this.selectedFile?.name,
+        receipt_image_url: '',
       };
 
       // Add to transaction service

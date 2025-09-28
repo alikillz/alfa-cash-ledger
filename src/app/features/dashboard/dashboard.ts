@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { HeaderComponent } from '../../core/components/header/header.component';
-import { AppConfigService } from '../../core/services/app-config.service';
+import { Transaction } from '../../core/models/transaction.model';
 import { AuthService } from '../../core/services/auth.service';
+import { TransactionService } from '../../core/services/transaction.service';
 import { BusinessSwitcherComponent } from './components/business-switcher/business-switcher.component';
 import { KpiCardsComponent } from './components/kpi-cards/kpi-cards.component';
 import { QuickActionsComponent } from './components/quick-actions/quick-actions.component';
@@ -115,17 +115,33 @@ import { TransactionListComponent } from './components/transaction-list/transact
 })
 export class Dashboard implements OnInit {
   currentUser: any;
+  todaysExpenses: number = 0;
+  mtdExpenses: number = 0;
+  salaryPayments: Transaction[] = [];
 
-  constructor(
-    private authService: AuthService,
-    private configService: AppConfigService,
-    private router: Router
-  ) {
+  // Transactions for selected business
+  transactions: Transaction[] = [];
+
+  constructor(private authService: AuthService, private transactionService: TransactionService) {
     this.currentUser = this.authService.currentUser; // ← Set in constructor
   }
 
   ngOnInit() {
     // console.log('Dashboard loaded for user:', this.currentUser);
+    const initialTransactions: Transaction[] = []; // replace with API response
+    console.log('start');
+    this.transactionService.loadAllTransactions(initialTransactions);
+
+    // 2️⃣ Subscribe to KPI observables
+    this.transactionService.todaysExpenses$.subscribe((val) => (this.todaysExpenses = val));
+    this.transactionService.mtdExpenses$.subscribe((val) => (this.mtdExpenses = val));
+    this.transactionService.salaryPayments$.subscribe((val) => (this.salaryPayments = val));
+
+    // 3️⃣ Subscribe to transactions by business (filtered by current business)
+    this.transactionService.transactionsByBusiness$.subscribe((map) => {
+      const currentBusinessId = this.transactionService['businessService'].getCurrentBusiness()?.id;
+      this.transactions = map.get(currentBusinessId ?? '') ?? [];
+    });
   }
 
   logout() {

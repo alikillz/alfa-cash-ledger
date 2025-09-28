@@ -1,30 +1,35 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root',
-})
+import { Product } from '../models/product.model';
+import { SupabaseService } from './Supabase/supabase.service';
+
+@Injectable({ providedIn: 'root' })
 export class ProductService {
-  private productsSignal = signal<string[]>([
-    'Diesel',
-    'Petrol',
-    'Engine Oil',
-    'Electricity Bill',
-    'Water Bill',
-    'Internet Bill',
-    'Office Supplies',
-    'Cleaning Materials',
-  ]);
+  private supabase = inject(SupabaseService).client;
 
-  products$ = this.productsSignal.asReadonly();
-
-  addProduct(newProduct: string): void {
-    const current = this.productsSignal();
-    if (!current.includes(newProduct)) {
-      this.productsSignal.set([...current, newProduct]);
-    }
+  async getProduct(businessId: string): Promise<Product[]> {
+    const { data, error } = await this.supabase
+      .from('products')
+      .select('id,business_id ,name, category_id, status')
+      .eq('business_id', businessId)
+      .order('created_at', { ascending: false });
+    console.log('got from database');
+    if (error) throw error;
+    return data ?? [];
   }
 
-  getProducts(): string[] {
-    return this.productsSignal();
+  async addProduct(category: Omit<Product, 'id' | 'created_at'>): Promise<void> {
+    const { error } = await this.supabase.from('products').insert([category]);
+    if (error) throw error;
+  }
+
+  async updateProduct(id: string, updates: Partial<Product>): Promise<void> {
+    const { error } = await this.supabase.from('products').update(updates).eq('id', id);
+    if (error) throw error;
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    const { error } = await this.supabase.from('products').delete().eq('id', id);
+    if (error) throw error;
   }
 }

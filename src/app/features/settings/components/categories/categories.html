@@ -48,45 +48,32 @@
       </div>
       <!-- Actions -->
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
-          {{ saving ? 'Saving...' : 'Save Category' }}
-        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Save</button>
       </div>
     </form>
   </div>
 </div>
-<div class="list-toggle">
-  <button class="btn btn-outline" (click)="toggleList()">
-    {{ showList ? 'Hide List' : 'Show List' }}
-  </button>
-</div>
 
 <!-- List -->
-<div *ngIf="showList" class="categories-list">
+<div class="categories-list">
   <h3>Existing Categories</h3>
 
-  <div *ngIf="loading" class="loading">Loading categories...</div>
-  <div *ngIf="!loading && categories.length === 0" class="empty">No categories found</div>
-
-  <table *ngIf="!loading && categories.length > 0" class="categories-table">
+  <table *ngIf="categories$ | async as categories" class="category-table">
     <thead>
       <tr>
         <th>Name</th>
         <th>Description</th>
         <th>Status</th>
-        <th style="width: 150px">Actions</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let cat of categories">
         <td>{{ cat.name }}</td>
-        <td>{{ cat.description || '-' }}</td>
+        <td>{{ cat.description }}</td>
+        <td>{{ cat.status }}</td>
         <td>
-          <span [class.inactive]="cat.status === 'inactive'">{{ cat.status }}</span>
-        </td>
-        <td>
-          <button class="btn btn-secondary btn-sm" (click)="onEdit(cat)">Edit</button>
-          <button class="btn btn-danger btn-sm" (click)="onDelete(cat)">Delete</button>
+          <button (click)="onDelete(cat)">Delete</button>
         </td>
       </tr>
     </tbody>

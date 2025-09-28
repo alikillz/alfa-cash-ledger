@@ -554,7 +554,7 @@ export class SalaryPaymentModalComponent {
       const employee = this.selectedEmployee();
 
       const salaryPayment = {
-        businessId: currentBusiness?.id || '0',
+        business_id: currentBusiness?.id || '0',
         employeeId: formData.employeeId!,
         amount: formData.amount!,
         date: formData.date!,
@@ -567,8 +567,8 @@ export class SalaryPaymentModalComponent {
       this.transactionService.addTransaction({
         ...salaryPayment,
         type: 'SALARY_PAYMENT',
-        vendorName: `Salary: ${employee?.name}`,
-        category: 'Salary Payment',
+        vendor_name: `Salary: ${employee?.name}`,
+        category_id: 'Salary Payment',
         transferReason: 'Salary Payment',
       });
 

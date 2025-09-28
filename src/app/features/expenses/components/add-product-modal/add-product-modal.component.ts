@@ -20,7 +20,7 @@ export class AddProductModalComponent {
   private productService = inject(ProductService);
   @Output() closed = new EventEmitter<void>(); // ← Add this
   onSave(productName: string): void {
-    this.productService.addProduct(productName);
+    //this.productService.addProduct(productName);
   }
 
   onClose(): void {

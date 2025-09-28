@@ -138,7 +138,7 @@ export class KpiCardsComponent implements OnInit {
   today = new Date();
 
   ngOnInit() {
-    this.todaysSpend = this.transactionService.getTodaysExpenses();
-    this.mtdSpend = this.transactionService.getMTDExpenses();
+    this.transactionService.todaysExpenses$.subscribe((val) => (this.todaysSpend = val));
+    this.transactionService.mtdExpenses$.subscribe((val) => (this.mtdSpend = val));
   }
 }

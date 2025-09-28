@@ -469,7 +469,7 @@ export class TopupModalComponent {
       const currentBusiness = this.businessService.getCurrentBusiness();
 
       const topup: TopUp = {
-        businessId: currentBusiness?.id || '0',
+        business_id: currentBusiness?.id || '0',
         amount: formData.amount!,
         date: formData.date!,
         handedTo: formData.handedTo!,
@@ -482,7 +482,7 @@ export class TopupModalComponent {
       this.transactionService.addTransaction({
         ...topup,
         type: 'TOP_UP',
-        vendorName: `Cash to ${formData.handedTo}`,
+        vendor_name: `Cash to ${formData.handedTo}`,
       });
 
       this.isSubmitting = false;
