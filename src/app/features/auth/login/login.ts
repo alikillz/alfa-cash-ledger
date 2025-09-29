@@ -222,20 +222,6 @@ export class Login {
         this.loading = false;
         this.loadingService.hide();
       }
-
-      //this.authService.signUp();
-
-      // For demo purposes - simulate login
-      //this.simulateLogin(credentials);
-
-      // For real app, you would use:
-      // this.authService.login(credentials).subscribe({
-      //   next: () => this.router.navigate(['/dashboard']),
-      //   error: (error) => {
-      //     this.errorMessage = error.message;
-      //     this.isLoading = false;
-      //   }
-      // });
     }
   }
 }

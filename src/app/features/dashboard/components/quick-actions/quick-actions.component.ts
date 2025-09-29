@@ -1,14 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../../../core/services/auth.service';
+import { ModalService } from '../../../../core/services/modal.service';
+import { AuthService } from '../../../../core/services/Supabase/auth.service';
 import { ExpenseModalComponent } from '../expense-modal/expense-modal.component';
-import { TopupModalComponent } from '../topup-modal/topup-modal.component';
 
 @Component({
   selector: 'app-quick-actions',
   standalone: true,
-  imports: [CommonModule, ExpenseModalComponent, TopupModalComponent],
+  imports: [CommonModule],
   template: `
     <div class="quick-actions">
       <h2>Quick Actions</h2>
@@ -70,20 +70,6 @@ import { TopupModalComponent } from '../topup-modal/topup-modal.component';
         </button>
       </div>
     </div>
-    <!-- Expense Modal -->
-    @if (showExpenseModal) {
-    <app-expense-modal
-      (closed)="showExpenseModal = false"
-      (expenseAdded)="onExpenseAdded()"
-    ></app-expense-modal>
-    }
-    <!-- Topup Modal -->
-    @if (showTopupModal) {
-    <app-topup-modal
-      (closed)="showTopupModal = false"
-      (topupAdded)="onTopupAdded()"
-    ></app-topup-modal>
-    }
   `,
   styles: [
     `
@@ -175,13 +161,12 @@ import { TopupModalComponent } from '../topup-modal/topup-modal.component';
 export class QuickActionsComponent {
   private authService = inject(AuthService);
   public router = inject(Router);
-
+  private modal = inject(ModalService);
   showExpenseModal = false;
   showTopupModal = false;
 
   onExpenseAdded(): void {
     console.log('Expense added successfully!');
-    this.showExpenseModal = false;
   }
 
   onTopupAdded(): void {
@@ -213,11 +198,9 @@ export class QuickActionsComponent {
 
   // Action handlers
   onAddExpense(): void {
-    if (this.canPerformAction('expense')) {
-      console.log('Opening Add Expense form...');
-      // Will open expense modal
-      this.showExpenseModal = true;
-    }
+    //if (this.canPerformAction('expense')) {
+    const { closed$ } = this.modal.open(ExpenseModalComponent);
+    //}
   }
 
   onAddTopUp(): void {

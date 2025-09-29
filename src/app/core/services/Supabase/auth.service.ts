@@ -78,6 +78,7 @@ export class AuthService {
     this.setLoading(true);
 
     const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
+    console.log(data);
     if (error) {
       this.setError(error.message);
       throw error;
@@ -106,6 +107,7 @@ export class AuthService {
   }
 
   hasRole(role: 'owner' | 'manager'): boolean {
+    console.log(this.authState);
     return this.authState.value.user?.role === role;
   }
 

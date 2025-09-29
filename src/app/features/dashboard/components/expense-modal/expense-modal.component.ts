@@ -69,9 +69,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
           <div class="form-group">
             <div class="form-header">
               <label for="category">Category *</label>
-              <button type="button" class="add-btn" (click)="showCategoryModal = true">
-                + Add New
-              </button>
             </div>
             <select
               id="category"
@@ -93,9 +90,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
           <div class="form-group">
             <div class="form-header">
               <label for="vendorName">Vendor *</label>
-              <button type="button" class="add-btn" (click)="showVendorModal = true">
-                + Add New
-              </button>
             </div>
             <select
               id="vendorName"
@@ -117,9 +111,6 @@ import { AddVendorModalComponent } from '../../../expenses/components/add-vendor
           <div class="form-group">
             <div class="form-header">
               <label for="productName">Product *</label>
-              <button type="button" class="add-btn" (click)="showProductModal = true">
-                + Add New
-              </button>
             </div>
             <select
               id="productName"
@@ -475,8 +466,6 @@ export class ExpenseModalComponent {
   vendors: Vendor[] = [];
   products: Product[] = [];
   employees: Employee[] = [];
-
-  @Output() closed = new EventEmitter<void>();
   @Output() expenseAdded = new EventEmitter<void>();
 
   //vendors = this.vendorService.getVendors;
@@ -497,24 +486,28 @@ export class ExpenseModalComponent {
   showVendorModal = false;
   showProductModal = false;
   currentBusinessId: string = '';
-
+  @Output() closed = new EventEmitter<any>();
   constructor(
     private categoryService: CategoryService,
     private vendorService: VendorService,
     private productService: ProductService,
     private employeeService: EmployeeService,
     private transactionService: TransactionService
-  ) {}
+  ) {
+    console.log('expense constructor');
+  }
 
   async ngOnInit() {
     // Subscribe to changes to refresh dropdowns
     //this.categories = this.categoryService.categories$;
     // this.vendors = this.vendorService.vendors$;
     // this.products = this.productService.products$;
+    console.log('before');
     const currentBusiness = this.businessService.getCurrentBusiness();
     this.currentBusinessId = currentBusiness?.id ?? '';
 
     if (!this.currentBusinessId) return; // safety check
+    console.log('after');
 
     this.categories = await this.categoryService.getCategories(this.currentBusinessId);
     this.vendors = await this.vendorService.getVendor(this.currentBusinessId);
@@ -570,7 +563,11 @@ export class ExpenseModalComponent {
 
       this.isSubmitting = false;
       this.expenseAdded.emit();
-      this.onClose();
+      this.closed.emit({ saved: true });
     }
+  }
+
+  onCancel() {
+    this.closed.emit(null);
   }
 }

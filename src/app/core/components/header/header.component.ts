@@ -23,9 +23,7 @@ import { AuthService } from '../../services/Supabase/auth.service';
           >
             Dashboard
           </a>
-          <a routerLink="/employees" routerLinkActive="active" *ngIf="canAccessEmployees()">
-            Employees
-          </a>
+          <a routerLink="/employees" routerLinkActive="active"> Employees </a>
           <a routerLink="/reports" routerLinkActive="active"> Reports </a>
           <a routerLink="/settings" routerLinkActive="active"> Settings </a>
         </nav>

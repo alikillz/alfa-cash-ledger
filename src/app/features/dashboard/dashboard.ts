@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { HeaderComponent } from '../../core/components/header/header.component';
 import { Transaction } from '../../core/models/transaction.model';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '../../core/services/Supabase/auth.service';
 import { TransactionService } from '../../core/services/transaction.service';
 import { BusinessSwitcherComponent } from './components/business-switcher/business-switcher.component';
 import { KpiCardsComponent } from './components/kpi-cards/kpi-cards.component';
@@ -145,6 +145,6 @@ export class Dashboard implements OnInit {
   }
 
   logout() {
-    this.authService.logout();
+    this.authService.signOut();
   }
 }

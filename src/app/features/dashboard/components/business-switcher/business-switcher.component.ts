@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../../../core/services/auth.service';
 import { Business, BusinessService } from '../../../../core/services/business.service';
+import { AuthService } from '../../../../core/services/Supabase/auth.service';
 
 @Component({
   selector: 'app-business-switcher',

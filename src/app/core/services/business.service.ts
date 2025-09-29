@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { AuthService } from './auth.service';
+
+import { AuthService } from './Supabase/auth.service';
 import { SupabaseService } from './Supabase/supabase.service';
 
 export interface Business {
